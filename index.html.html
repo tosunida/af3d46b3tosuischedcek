@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<title>7월 승무 스케줄</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --card:#fff; --ink:#1d1d1f; --muted:#8c8881; --faint:#b8b3aa; --line:#ecebe6;
+    --accent:#e8623d; --accent-s:#fbe9e3;
+    --day:#c2542f; --day-bg:#fcebe2;
+    --night:#3f5180; --night-bg:#e8ecf4;
+    --stby:#6f5e94; --stby-bg:#efeaf6;
+    --off:#5a8763; --off-bg:#e8efe8;
+    --mono:"SF Mono",ui-monospace,"Menlo","Roboto Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;
+    max-width:480px;margin:0 auto;padding-bottom:calc(env(safe-area-inset-bottom) + 30px);
+    -webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  /* header */
+  header{padding:calc(env(safe-area-inset-top) + 26px) 24px 18px;display:flex;align-items:flex-end;gap:12px}
+  header .month{font-size:24px;font-weight:800;letter-spacing:-.03em}
+  header .month span{color:var(--faint);font-weight:700}
+  header .sub{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:5px;flex:1}
+  header .taxitot{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px;white-space:nowrap}
+  header .taxitot b{color:var(--ink);font-family:var(--mono);font-weight:700}
+  header .hdrexp{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+  header .taxitot.gtl{margin-bottom:0}
+  header .hdrexp .taxitot{margin-bottom:0}
+  header .taxitot.gtl b{color:var(--accent)}
+  /* legend */
+  .legend{display:flex;gap:14px;padding:0 24px 12px;font-size:12px;color:var(--muted);font-weight:500}
+  .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:0px}
+  /* calendar */
+  .cal{padding:4px 14px 6px}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr)}
+  .dow span{text-align:center;font-size:11px;font-weight:600;color:var(--faint);padding:3px 0}
+  .dow span:first-child{color:#cf7a6a}.dow span:last-child{color:#7a93c0}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cell{aspect-ratio:1/1.15;border-radius:13px;background:var(--card);padding:6px 4px 4px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;position:relative;border:1.5px solid transparent;
+    transition:transform .1s ease}
+  .cell:active{transform:scale(.94)}
+  .cell .n{font-size:12px;font-weight:600;color:var(--faint);align-self:flex-start;line-height:1;margin-left:2px}
+  .cell .c{font-family:var(--mono);font-size:11px;font-weight:700;margin-top:auto;margin-bottom:3px;letter-spacing:-.04em}
+  .cell.empty{background:none;cursor:default}
+  .cell.day{background:var(--day-bg)} .cell.day .c{color:var(--day)}
+  .cell.night{background:var(--night-bg)} .cell.night .c{color:var(--night)}
+  .cell.standby{background:var(--stby-bg)} .cell.standby .c{color:var(--stby)}
+  .cell.off{background:var(--off-bg)}
+.cell.edu{background:#f3ecda}
+.cell.unknown{background:#f6e2e2}
+.cell.pre{background:#f4f4f2;opacity:.55}
+.edu2note{background:#efe7f3;border:1px solid #ddd0e6;color:#6f4f86;font-size:12px;font-weight:600;padding:8px 11px;border-radius:9px;margin-bottom:10px} .cell.off .c{color:var(--off);font-size:15px}
+  .cell.past{opacity:.4}
+  .cell.sel{border-color:var(--ink);opacity:1}
+  .cell.today .n{color:var(--accent);font-weight:800}
+  .cell .tx{position:absolute;top:5px;right:4px;font-size:9px}
+  .cell .fd{position:absolute;top:5px;right:15px;font-size:9px}
+  .taxi.food{margin-top:12px;padding-top:12px}
+  .taxi.food .txitem.fdit{background:#eef7ef;border-color:#cfe6d2}
+  .taxi.food .txadd button{background:#3f7a4a}
+  /* detail */
+  .detail{padding:14px 20px 0;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border-radius:20px;padding:20px;margin-bottom:14px}
+  .c-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .c-top .date{font-size:14px;color:var(--muted);font-weight:600}
+  .c-top .dia{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:2px}
+  .c-top .dia small{font-size:13px;color:var(--muted);font-weight:600;margin-left:6px;letter-spacing:0}
+  .badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;white-space:nowrap}
+  .badge.day{background:var(--day-bg);color:var(--day)}.badge.night{background:var(--night-bg);color:var(--night)}
+  .badge.standby{background:var(--stby-bg);color:var(--stby)}.badge.off{background:var(--off-bg);color:var(--off)}
+  .times{display:flex;gap:0;margin:18px 0 4px}
+  .times .t{flex:1}
+  .times .t .k{font-size:11px;color:var(--muted);font-weight:600}
+  .times .t .v{font-size:30px;font-weight:800;font-family:var(--mono);letter-spacing:-.03em;margin-top:1px}
+  .times .t.end .v{color:var(--accent)}
+  .times .arw{align-self:center;color:var(--faint);font-size:18px;padding:0 6px;margin-top:14px}
+  .block{margin-top:18px}
+  .block .h{font-size:12px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:9px}
+  .trip{display:flex;flex-direction:column;gap:3px}
+  .trip .line{display:flex;align-items:center;gap:8px;font-size:14px}
+  .trip .line .tm{font-family:var(--mono);font-weight:700;font-size:14px}
+  .trip .sub{font-size:12px;color:var(--muted)}
+  .tn{display:inline-flex;align-items:center;font-family:var(--mono);font-weight:700;font-size:12px;
+    padding:2px 8px;border-radius:7px;letter-spacing:-.02em}
+  .tn.mu{background:#e9f2ea;color:#4a7d54}.tn.ktx{background:#e9eef9;color:#3a5180}.tn.itx{background:#fdeee4;color:#c2542f}.tn.etc{background:#fbf0dd;color:#a5701a}
+  .best{font-size:10px;font-weight:800;color:var(--accent);background:var(--accent-s);border-radius:6px;padding:1px 6px;margin-left:2px}
+  .nextline{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .nextline .tn{font-size:11px;padding:1px 6px}
+  .self{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);background:#faf3ee;border-radius:12px;padding:11px 13px}
+  .self b{color:var(--accent);font-weight:700}
+  .rest{text-align:center;padding:26px 0 14px}
+  .rest .e{font-size:40px}.rest .t{font-size:16px;font-weight:700;color:var(--off);margin-top:6px}
+  /* collapsibles */
+  details.fold{margin-top:10px;border-top:1px solid var(--line);padding-top:4px}
+  details.fold>summary{list-style:none;cursor:pointer;padding:9px 2px;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+  details.fold>summary::-webkit-details-marker{display:none}
+  details.fold>summary .cv{margin-left:auto;transition:transform .2s;color:var(--faint)}
+  details.fold[open]>summary .cv{transform:rotate(90deg)}
+  .tt{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 2px 10px}
+  .tt h4{font-size:11px;font-weight:700;color:var(--muted);margin:0 0 7px}
+  .tt .r{display:flex;align-items:center;gap:6px;font-size:12px;padding:2.5px 0}
+  .tt .r .tm{font-family:var(--mono);font-weight:700;min-width:38px}
+  .tt .r .tn{font-size:10px;padding:0 5px}
+  .tt .r.on{background:var(--accent-s);border-radius:6px;margin:0 -4px;padding:2.5px 4px}
+  .swp{display:flex;flex-direction:column;gap:7px;padding:4px 2px 10px}
+  .swp .s{display:flex;gap:9px;font-size:13px;align-items:flex-start}
+  .swp .s .ic{margin-top:1px}
+  .swp .s b{font-family:var(--mono)}
+  .swp .intro{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:3px}
+  .run{padding:4px 2px 8px}
+  .run .leg{margin-bottom:12px}
+  .run .leg .lh{font-size:11.5px;font-weight:700;color:var(--accent);margin-bottom:5px;display:flex;gap:6px;align-items:center}
+  .run .leg .lh .ry{margin-left:auto;font-size:10px;color:var(--off);background:var(--off-bg);border-radius:5px;padding:1px 6px;font-weight:700}
+  .run .sr{display:grid;grid-template-columns:1fr 44px 44px;gap:5px;font-size:11.5px;padding:2px 0;border-bottom:1px dotted var(--line)}
+  .run .sr.hd{font-size:10px;color:var(--faint);font-weight:700}
+  .run .sr.hd .a,.run .sr.hd .d{text-align:right}
+  .run .sr .a,.run .sr .d{font-family:var(--mono);text-align:right;color:var(--muted)}
+  .run .sr .d{color:var(--ink);font-weight:600}
+  .run .sr.ms{color:var(--accent);font-weight:700}.run .sr.ms .d{color:var(--accent)}
+  .run .sr .tag{font-size:9px;color:var(--faint);margin-left:4px}
+  /* 팀장 */
+  .lead{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:14px;padding:11px 13px;background:#f3f5f3;border-radius:13px}
+  .lead .who{font-weight:700}.lead .team{font-size:11px;color:var(--muted);font-weight:600}
+  /* office */
+  .office{margin-top:18px}
+  .office .h{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+  .office .m{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:4px 0}
+  .office .m .dd{font-family:var(--mono);font-weight:700}
+  .office .m .dest{color:var(--muted);font-size:12.5px}
+  .office .m .w{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .office .alone{font-size:13px;color:var(--muted)}
+  /* 조성 */
+  .chip{font-size:10px;font-weight:800;border-radius:6px;padding:1px 7px;color:#fff;letter-spacing:-.02em}
+  .consist{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:10px}
+  .consist .row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:4px}
+  .consist .row .tn{font-size:11px}
+  .consist .sum{font-weight:700;color:var(--ink)}
+  /* raw table */
+  .run .rawtbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .run table{border-collapse:collapse;font-size:11px;width:100%;min-width:330px}
+  .run th{font-size:9.5px;color:var(--faint);font-weight:700;text-align:right;padding:3px 6px;border-bottom:1px solid var(--line)}
+  .run th:first-child{text-align:left}
+  .run td{padding:3px 6px;text-align:right;font-family:var(--mono);color:var(--muted);border-bottom:1px dotted var(--line);white-space:nowrap}
+  .run td:first-child{text-align:left;font-family:var(--sans);color:var(--ink);font-weight:600}
+  .run td.dep{color:var(--ink);font-weight:700}
+  .run tr.ms td{color:var(--accent)!important}
+  .run td .u{font-size:9px;color:var(--faint);margin-left:3px}
+  .run td .xm{font-size:9px;font-weight:700;color:#8a4b9c;margin-left:4px;white-space:nowrap}
+  .run td .rd{color:#d63a2f;font-weight:800}
+  /* 연차·병가 */
+  .lvbanner{margin-top:14px;padding:11px 14px;border-radius:13px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .lvbanner span{font-size:11.5px;font-weight:500;opacity:.8}
+  .lvbanner.ann{background:#e8efe8;color:#4a7d54}.lvbanner.sick{background:#fdeaea;color:#c25151}
+  .leave{display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .leave .lvlab{font-size:13px;font-weight:600;color:var(--muted);margin-right:auto}
+  .lv{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
+  .lv.on.ann{background:#e8efe8;border-color:#bcd4bf;color:#4a7d54}
+  .lv.on.sick{background:#fdeaea;border-color:#f0cccc;color:#c25151}
+  .cell .lvm{position:absolute;top:4px;right:4px;font-size:9px;font-weight:800;width:14px;height:14px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff}
+  .cell .lvm.ann{background:#5a8763}.cell .lvm.sick{background:#c25151}
+  .cell.lvcell{outline:2px dashed var(--faint);outline-offset:-2px}
+  /* 팀장 + 만남 버튼 */
+  .leadwrap{margin-top:14px}
+  .leadrow{display:flex;align-items:center;gap:8px}
+  .leadrow .lead{margin-top:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .leadrow .lead .who{font-weight:700}
+  .meettoggle{flex-shrink:0;border:1px solid var(--line);background:#eef1f4;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .meettoggle.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .leadlist{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+  .leadlist .lg{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;background:#f3f5f3;border-radius:11px}
+  .leadlist .wh{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;flex-shrink:0}
+  .leadlist .wh.on{background:#e2f0e4;color:#2f7d40}
+  .leadlist .wh.off{background:#fdeae0;color:#c2542f}
+  .leadlist .wh.mid{background:#eceef0;color:#6b7280}
+  .leadlist .whos{display:flex;flex-wrap:wrap;gap:5px 10px;flex:1;min-width:0;padding-top:1px}
+  .leadlist .wp{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap}
+  .leadlist .wp em{font-style:normal;font-size:9.5px;font-weight:800;margin-left:4px;padding:1px 5px;border-radius:6px;vertical-align:middle}
+  .leadlist .wp em.d{background:#fdeae0;color:#c2542f}
+  .leadlist .wp em.n{background:#e1e5f4;color:#3b4a8a}
+  .meetpanel{margin-top:9px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 12px 8px}
+  .mgrp{font-size:11px;font-weight:800;color:var(--muted);padding:9px 0 3px;border-top:1px solid var(--line)}
+  .mgrp:first-child{border-top:none}
+  .meetpanel .mm{display:flex;align-items:center;gap:9px;font-size:13px;padding:4px 0}
+  .meetpanel .mm .dd{font-family:var(--mono);font-weight:700}
+  .meetpanel .mm .w{font-family:var(--mono);color:var(--muted);font-size:12px}
+  .meetpanel .mm .ctx{margin-left:auto;font-size:11px;color:var(--faint)}
+  .run .rnote{font-size:10.5px;color:var(--faint);padding:2px 2px 8px}
+  .run .rungrp{font-size:12px;font-weight:800;color:var(--ink);padding:10px 2px 8px;margin-top:4px;border-top:2px solid var(--line)}
+  .run .rungrp:first-of-type{border-top:none;margin-top:0}
+  /* 교대 라인 (운행표) */
+  .swline{font-size:11.5px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+  .swline span{margin-left:auto;font-family:var(--mono);color:var(--faint);font-weight:600}
+  .swline.in{color:#4a7d54}.swline.out{color:var(--accent)}
+  .swline b{font-family:var(--mono)}
+  /* 다중 택시 */
+  .taxi{display:block;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .total{margin-top:16px;padding:14px 15px;background:linear-gradient(180deg,#fbf3ee,#f7efe9);border:1px solid #eaddd3;border-radius:14px}
+  .total .ttop{display:flex;align-items:center;justify-content:space-between}
+  .total .tlab{font-size:14px;font-weight:800;color:var(--ink)}
+  .total .tval{font-size:19px;font-weight:800;color:var(--accent);font-family:var(--mono)}
+  .total .tsub{font-size:12px;color:var(--muted);font-weight:600;margin-top:4px}
+  .total .trange{color:var(--faint)}
+  .total .cyc{display:flex;align-items:center;gap:9px;margin-top:11px}
+  .total .cyclab{font-size:11.5px;color:var(--muted);font-weight:600}
+  .total .cysel{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+  .total .cysel:focus{outline:none;border-color:var(--accent)}
+  .ttedit{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:6px}
+  .ttedit.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .r.ed{display:flex;align-items:center;gap:5px}
+  .r.ed .tm{flex:0 0 auto}
+  .r.ed .esel{border:1px solid var(--line);border-radius:7px;background:#fff;font-size:11px;font-weight:600;padding:3px 4px;font-family:inherit;color:var(--ink)}
+  .r.ed .eno{width:52px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:11px;font-family:var(--mono);padding:3px 5px;text-align:center;color:var(--ink)}
+  .r.ed .esel:focus,.r.ed .eno:focus{outline:none;border-color:var(--accent)}
+  .backup{max-width:440px;margin:14px auto 0;display:flex;align-items:center;gap:8px;padding:0 4px}
+  .backup .bklab{font-size:12.5px;font-weight:700;color:var(--muted)}
+  .backup .bkbtn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .backup .bkbtn:active{background:#f3ece6}
+  .backup #impf{display:none}
+  .mnav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:2px}
+  .mnav .marr{width:32px;height:32px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;font-size:22px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
+  .mnav .marr:active{background:#f3ece6}
+  .mnav .marr:disabled{opacity:.3;cursor:default}
+  .mnav .month{margin:0;min-width:92px;text-align:center}
+  .cell.edu .c{color:#8a6d3b}
+  .cell.unknown .c{color:#b23b3b}
+  .badge.edu{background:#efe6d5;color:#8a6d3b}
+  .pmz{color:var(--faint);font-weight:600;font-size:11px}
+  .perf1.muted{color:var(--faint);font-style:normal}
+  .reps{display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 12px;background:#f6f1ea;border:1px solid var(--line);border-radius:10px}
+  .reps .rk{font-size:11.5px;color:var(--muted);font-weight:700}
+  .reps .rv{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+  .perf{max-width:440px;margin:12px auto 0;padding:11px 14px;background:linear-gradient(180deg,#f3f0ea,#efeae2);border:1px solid #e3dccf;border-radius:12px;font-size:12.5px;font-weight:600;color:var(--ink);text-align:center}
+  .perf b{font-weight:800}
+  .perf1{display:flex;gap:16px;margin:2px 0 4px;padding:9px 12px;background:#faf6f1;border:1px solid var(--line);border-radius:10px;font-size:12.5px;color:var(--muted);font-weight:600}
+  .perf1 b{color:var(--ink);font-weight:800;font-family:var(--mono)}
+  .taxi .th{font-size:13px;font-weight:600;color:var(--muted);display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .taxi .th b{color:var(--ink);font-family:var(--mono);margin-left:auto}
+  .txlist{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .txitem{display:inline-flex;align-items:center;gap:6px;background:#fff5ee;border:1px solid #f3d6c5;border-radius:9px;
+    padding:5px 6px 5px 11px;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--accent)}
+  .txitem button{border:none;background:none;color:var(--faint);font-size:16px;cursor:pointer;line-height:1;padding:0 2px}
+  .txadd{display:flex;align-items:center;gap:6px}
+  .txadd span{color:var(--muted);font-weight:700}
+  .txadd input{flex:1;border:none;border-bottom:1.5px solid var(--line);background:none;font-family:var(--mono);font-size:15px;font-weight:700;padding:4px 0;color:var(--ink)}
+  .txadd input:focus{outline:none;border-color:var(--accent)}
+  .txadd button{border:none;background:var(--ink);color:#fff;border-radius:9px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  /* 시간표 note */
+  .ttnote{font-size:11.5px;color:var(--muted);line-height:1.6;padding:6px 2px 10px}
+  .ttnote a{color:#3a5180;font-weight:700;text-decoration:none}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  /* 한 줄 강제 (줄바꿈 방지) */
+  .block .h,.trip .line,.trip .sub,.nextline,.self,.self>div,.meetpanel .mm,.lvbanner,.times .t .k{
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trip .line{min-width:0}
+  .trip .sub{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .self>div{min-width:0;flex:1}
+
+.tlchip{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.tlchip .c{display:inline-flex;align-items:baseline;gap:5px;background:#faf6f1;border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px}
+.tlchip .ci{display:none}
+.tlchip .ck{font-weight:600;color:var(--muted)}
+.tlchip .cvl{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.tlfold{margin-top:6px}
+.tlbox{padding:4px 2px}
+.tlrow{display:flex;gap:8px;padding:3px 0;align-items:flex-start;font-size:12.5px}
+.tlrow.hl{background:#fff29e;border-radius:7px;padding:4px 6px;margin:1px 0}
+.tltm{font-variant-numeric:tabular-nums;font-weight:700;min-width:72px;white-space:nowrap;color:var(--ink)}
+.tlbd{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px}
+.tltg{font-weight:700}.tlpl{color:var(--ink)}.tlnt{color:var(--muted);font-size:11px;width:100%}
+.tlblk{border-radius:8px;padding:5px 9px;font-size:11.5px;margin:2px 0;background:#f4efe7;border:1px dashed #e2d8c8;color:#7a7266;text-align:left}
+.tlblk.stay{background:#f2ecf7;border-color:#ddd0ea;color:#7a5fb0}
+.tlblk.sum{background:#eef7f1;border-color:#cfe9d8;color:#3f8a5a;font-weight:700}
+.tlblk.turn{background:#eaf1fb;border-color:#cfe0f5;color:#3f6ec9}
+.c-pla .tltg{color:#3f6ec9}.c-chu .tltg{color:#c96b3f}.c-alc .tltg{color:#b23b6a}
+.c-wak .tltg{color:#c9902f}.c-ins .tltg{color:#3f8a5a}.c-end .tltg{color:#c96b3f}
+.c-lod .tltg{color:#2f9e8f}.c-run .tltg{color:var(--muted)}.c-arr .tltg{color:var(--muted)}
+
+.tlsec{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.tlhead{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
+.tlsel{display:flex;gap:5px;margin-bottom:10px}
+.tlsel button{flex:1;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:#faf9f6;font-size:11.5px;font-weight:700;color:var(--muted);font-family:inherit;cursor:pointer}
+.tlsel button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tlmsg{font-size:11.5px;color:var(--faint);text-align:center;padding:6px 0 2px}
+.tlstate{display:flex;align-items:center;gap:11px;background:#faf6f1;border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:4px}
+.tlstate .em{font-size:23px}
+.tlstate .bd2{display:flex;flex-direction:column;flex:1;gap:1px}
+.tlstate .k2{font-size:10.5px;color:var(--muted);font-weight:600}
+.tlstate .v2{font-size:13.5px;font-weight:800}
+.tlstate .n2{font-size:11px;color:var(--accent);font-weight:700}
+.tlstate .mini2{height:5px;border-radius:99px;background:#eceae5;overflow:hidden;margin-top:4px}
+.tlstate .mini2 i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.tbwrap{position:relative;padding:6px 0 16px;margin-top:6px}
+.tbbar{position:relative;height:12px;border-radius:99px;background:#eceae5;overflow:hidden}
+.tbseg{position:absolute;top:0;bottom:0}
+.tbnow{position:absolute;top:2px;height:20px;width:2.5px;background:var(--ink);border-radius:2px;z-index:3}
+.tbnow::after{content:'';position:absolute;top:-4px;left:-3px;width:8px;height:8px;background:var(--ink);border-radius:50%}
+.tbt{position:absolute;bottom:0;font-size:9.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.vtl{padding:2px 0}
+.vti{display:flex;gap:9px;align-items:stretch}
+.vti .vtr{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0}
+.vti .vtd{width:9px;height:9px;border-radius:50%;background:var(--vc);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--vc);margin-top:4px;flex-shrink:0}
+.vti .vtl2{width:2.5px;flex:1;background:var(--vc);opacity:.32;border-radius:2px;min-height:10px}
+.vti .vtb{padding-bottom:11px;font-size:12px;flex:1}
+.vti .vtt{font-weight:800;font-variant-numeric:tabular-nums}
+.vti .vtp{color:var(--muted)}
+.vti .vtn{display:block;font-size:10.5px;color:var(--faint)}
+.vti.past{opacity:.35}
+.vti.cur .vtb{background:#fff5eb;border:1.5px solid #f0cba9;border-radius:11px;padding:7px 9px 8px;margin-bottom:9px}
+.vti.cur .vtd{background:var(--accent);box-shadow:0 0 0 1.5px var(--accent),0 0 0 5px rgba(232,98,61,.14)}
+.vti .vtnow{display:block;font-size:10.5px;font-weight:800;color:var(--accent);margin-top:3px}
+.gwrap{position:relative;padding-top:14px}
+.glane{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.glane .gl{width:28px;font-size:10px;font-weight:700;color:var(--muted);text-align:right;flex-shrink:0}
+.glane .gb{position:relative;flex:1;height:14px;background:#f1efe9;border-radius:6px}
+.gseg{position:absolute;top:0;bottom:0;border-radius:5px}
+.gaxis{position:relative;height:13px;margin-left:34px}
+.gtick{position:absolute;font-size:9px;color:var(--faint);transform:translateX(-50%)}
+.gnow{position:absolute;top:8px;bottom:12px;width:2px;background:var(--ink);z-index:4;border-radius:2px}
+.vti .vtdur{display:block;font-size:10px;color:var(--faint);margin-top:1px}
+
+.cell{position:relative}
+.cell.sojcell::after{content:'📚';position:absolute;bottom:3px;right:4px;font-size:9px}
+.sojb{border-radius:10px;padding:8px 11px;font-size:12px;font-weight:600;margin-bottom:8px}
+.sojb.ok{background:#f5efdd;border:1px solid #e5d5a8;color:#8a6a14}
+.sojb.no{background:#f6ecec;border:1px solid #e8cfcf;color:#b25151}
+.lv.soj.on{background:#f5efdd;border-color:#d9c07a;color:#8a6a14}
+</style>
+</head>
+<body>
+<style id="merge-css">
+#vtoggle{position:sticky;top:0;z-index:99999;display:flex;gap:5px;padding:8px 10px;background:#f5f4f1;border-bottom:1px solid #e6e0d6;margin:0 0 6px}
+#vtoggle button{flex:1;padding:9px 4px;border:1px solid #d9d2c6;border-radius:10px;background:#fff;font-weight:700;font-size:12.5px;color:#8a8378;font-family:inherit;cursor:pointer}
+#vtoggle button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
+#v-dia,#v-ann{margin:0}
+#v-dia iframe,#v-ann iframe{width:100%;border:0;display:block;min-height:100vh}
+</style><div id="vtoggle"><button id="tb-s" class="on" onclick="showView('sched')">📅 스케줄</button><button id="tb-d" onclick="showView('dia')">🚆 다이아</button><button id="tb-a" onclick="showView('ann')">🌴 연차추천</button></div><div id="v-sched">
+<header>
+  <div class="mnav">
+    <button class="marr" id="mprev" onclick="stepMonth(-1)" aria-label="이전 달">‹</button>
+    <div class="month" id="hdrMonth">7월 <span>2026</span></div>
+    <button class="marr" id="mnext" onclick="stepMonth(1)" aria-label="다음 달">›</button>
+  </div>
+  <div class="hdrexp">
+    <div class="taxitot gtl">💰 <b id="grandTotal">₩0</b></div>
+    <div class="taxitot">🚕 <b id="taxiTotal">₩0</b></div>
+    <div class="taxitot">🍽 <b id="foodTotal">₩0</b></div>
+  </div>
+</header>
+<div class="legend">
+  <span><i style="background:var(--day)"></i>주간</span>
+  <span><i style="background:var(--night)"></i>야간</span>
+  <span><i style="background:var(--stby)"></i>비번</span>
+  <span><i style="background:var(--off)"></i>휴무</span>
+</div>
+<div class="cal">
+  <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="perf" id="perf"></div>
+<div class="detail" id="detail"></div>
+<div class="backup">
+  <span class="bklab">💾 백업</span>
+  <button class="bkbtn" onclick="exportData()">📤 내보내기</button>
+  <button class="bkbtn" onclick="document.getElementById('impf').click()">📥 불러오기</button>
+  <input id="impf" type="file" accept="application/json,.json" onchange="importData(this)">
+</div>
+<footer>퇴근 기차는 <b>마산 도착 +10분</b>부터 3개 표시 · 시간표는 <b>코레일 공식(요일별)</b> 기준, SRT 제외 · 열차 종류·번호는 시간표 <b>✏️편집</b>으로 수정 · 량수=네 엑셀, 조성=행로표 · 운용팀장 주간순번 7/1 C→7/2 B→7/3 A→7/4 D (4일주기) · 기록은 이 기기에만 저장(정기적으로 <b>내보내기</b> 권장).</footer></footer>
+</div><div id="v-dia" style="display:none"><iframe id="diaframe" title="다이아"></iframe></div><div id="v-ann" style="display:none"><iframe id="annframe" title="연차추천"></iframe></div><script type="text/html" id="dia-src"><!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>다이아별 휴게·출무 정리 — 배채은</title><style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#26241f;--faint:#9a938a;--line:#ece7df;--warm:#c96b3f;--blue:#3f6ec9;--grn:#3f8a5a;--pur:#7a5fb0;--amber:#c9902f;--teal:#2f9e8f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding:16px;max-width:480px;margin:0 auto;-webkit-font-smoothing:antialiased}
+h1{font-size:20px;margin-bottom:4px}
+.sub{color:var(--faint);font-size:12.5px;margin-bottom:14px;line-height:1.6}
+.legend{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:12px;line-height:1.85;margin-bottom:16px}
+.legend b{color:var(--warm)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.03);overflow:hidden}
+.card>.tl{padding:6px 15px 14px}
+.card[open]{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.ch{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 15px;cursor:pointer;list-style:none;user-select:none}
+.ch::-webkit-details-marker{display:none}
+.card[open]>.ch{border-bottom:1px solid var(--line)}
+.tspan{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.arrow{margin-left:auto;color:var(--faint);font-size:13px;transition:transform .15s}
+.card[open] .arrow{transform:rotate(180deg)}
+.dn{font-size:17px;font-weight:800}.dc{font-size:12px;color:var(--faint)}.rt{font-size:12.5px;color:var(--warm);font-weight:600}
+.ov{background:#efe6f6;color:var(--pur);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+.tl{display:flex;flex-direction:column}
+.rw{display:flex;gap:10px;padding:4px 0;align-items:flex-start}
+.tm{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;min-width:84px;white-space:nowrap;color:var(--ink);padding-top:1px}
+.bd{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:13px}
+.tg{font-weight:700}.pl{color:var(--ink)}.nt{color:var(--faint);font-size:11.5px;width:100%}
+.rw.plat .tg{color:var(--blue)} .rw.chulmu .tg{color:var(--warm)} .rw.alco .tg{color:#b23b6a}
+.rw.wake .tg{color:var(--amber)} .rw.insp .tg{color:var(--grn)} .rw.end .tg{color:var(--warm)}
+.rw.lodge .tg{color:var(--teal)} .rw.run .tg{color:var(--faint)} .rw.arr .tg{color:var(--faint)}
+.rw.hl{background:#fff29e;border-radius:8px;padding:5px 6px;margin:2px 0}
+.br{margin:3px 0}.bt{background:#f7f3ec;border:1px dashed #e2d8c8;border-radius:9px;padding:6px 10px;font-size:12px;color:#7a7266;width:100%}
+.br.stay .bt{background:#f2ecf7;border-color:#ddd0ea;color:var(--pur)}
+.br.turn .bt{background:#eaf1fb;border-color:#cfe0f5;color:var(--blue)}
+.br.sum .bt{background:#eef7f1;border-color:#cfe9d8;color:var(--grn);font-weight:700}
+.ft{color:var(--faint);font-size:11.5px;text-align:center;margin-top:8px;line-height:1.7}
+</style></head><body>
+<h1>🚆 다이아별 휴게·출무 정리</h1>
+<div class="sub">배채은 · 마산열차승무사업소 · 1~11다이아 전 구간</div>
+<div class="legend">
+<b>시발역</b> 시발점검 → 출발 <b>-25분</b> 승강홈 &nbsp;|&nbsp; <b>교대</b> → <b>-10분</b><br>
+<b>종착역</b> 종착순회 → 도착 <b>+15분</b><br>
+<b>휴게 2시간↑</b> → 그 역 재출무 (열차 -1h)<br>
+<b>박사업 비번날</b> 기상(출무 -1h) · 출무(숙소) · 음주(-30분, 역) · 승강홈(-25/-10)<br>
+<b>숙소 도보</b> 순천 17분 · 부전 7분 (마산·동대구·진주 역내 0분) · 빠른 회차 땐 숙소 X
+</div>
+<details class="card"><summary class="ch"><span class="dn">1다이아</span><span class="dc">03001</span><span class="rt">진주·동대구</span><span class="tspan">05:51~16:31</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">05:51</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">06:00</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">입환 승차 · 시발점검 없음 · 6시경 내려감 · H1944</span></div></div><div class="rw run"><div class="tm">06:05</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">H1944 회송 · 입환 즉시출발 · 6:05경 (원래 스케줄 06:21)</span></div></div><div class="rw arr"><div class="tm">06:30</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">H1944 · 회송이라 종착순회 없음 · 6:30경 (원래 스케줄 06:55)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 진주 · 1시간 0분  (숙소(역내))</div></div><div class="rw plat hl"><div class="tm">07:30</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1944 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">07:55</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1944 운행</span></div></div><div class="rw arr"><div class="tm">10:10</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1944 · 종착역</span></div></div><div class="rw insp"><div class="tm">10:25</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 동대구 · 2시간 59분  (종착순회~재출무)</div></div><div class="rw chulmu hl"><div class="tm">13:24</div><div class="bd"><span class="tg">재출무</span><span class="pl">동대구</span><span class="nt">체류 2시간↑ (숙소, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 동대구 · 35분  (재출무~승강홈)</div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 동대구 · 3시간 34분</div></div><div class="rw plat hl"><div class="tm">13:59</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1945 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">14:24</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1945 운행</span></div></div><div class="rw arr"><div class="tm">16:01</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1945 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">16:31</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">2다이아</span><span class="dc">03002</span><span class="rt">부전 2왕복</span><span class="tspan">07:24~20:54</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">07:24</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">07:54</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1962 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">08:04</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 부전</span><span class="nt">1962 운행</span></div></div><div class="rw arr"><div class="tm">09:32</div><div class="bd"><span class="tg">종착</span><span class="pl">부전 도착</span><span class="nt">1962 · 종착역</span></div></div><div class="rw insp"><div class="tm">09:47</div><div class="bd"><span class="tg">종착순회</span><span class="pl">부전</span><span class="nt">도착 +15분</span></div></div><div class="rw lodge"><div class="tm">09:54</div><div class="bd"><span class="tg">숙소도착</span><span class="pl">부전</span><span class="nt">도보 7분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 부전 · 51분  (숙소)</div></div><div class="rw lodge"><div class="tm">10:45</div><div class="bd"><span class="tg">숙소출발</span><span class="pl">부전</span><span class="nt">승강홈 -7분 (도보)</span></div></div><div class="rw plat hl"><div class="tm">10:52</div><div class="bd"><span class="tg">승강홈</span><span class="pl">부전</span><span class="nt">시발점검 · 1981 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">11:17</div><div class="bd"><span class="tg">출발</span><span class="pl">부전 → 마산</span><span class="nt">1981 운행</span></div></div><div class="rw arr"><div class="tm">12:48</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1981 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 마산 · 3시간 11분  (도착~재출무)</div></div><div class="rw chulmu hl"><div class="tm">15:59</div><div class="bd"><span class="tg">재출무</span><span class="pl">마산</span><span class="nt">체류 2시간↑ (역, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 마산 · 50분  (재출무~승강홈)</div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 마산 · 4시간 1분</div></div><div class="rw plat hl"><div class="tm">16:49</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1964 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">16:59</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 부전</span><span class="nt">1964 운행</span></div></div><div class="rw arr"><div class="tm">18:24</div><div class="bd"><span class="tg">종착</span><span class="pl">부전 도착</span><span class="nt">1964 · 종착역</span></div></div><div class="rw insp"><div class="tm">18:24</div><div class="bd"><span class="tg">종착순회</span><span class="pl">부전</span><span class="nt">빠른 회차 · 7분 소요 (~18:31)</span></div></div><div class="rw br turn"><div class="bt">🔄 빠른 회차 · 부전 · 체류 29분 · 종착순회 7분 + 시발점검 20분(단축)</div></div><div class="rw plat hl"><div class="tm">18:33</div><div class="bd"><span class="tg">승강홈</span><span class="pl">부전</span><span class="nt">시발점검 · 1963 · 열차 20분 전 (단축)</span></div></div><div class="rw run"><div class="tm">18:53</div><div class="bd"><span class="tg">출발</span><span class="pl">부전 → 마산</span><span class="nt">1963 운행</span></div></div><div class="rw arr"><div class="tm">20:24</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1963 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">20:54</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">3다이아</span><span class="dc">03003</span><span class="rt">진주·동대구</span><span class="tspan">07:38~19:43</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">07:38</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">08:08</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1941 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">08:18</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">1941 운행</span></div></div><div class="rw arr"><div class="tm">08:51</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">1941 · 종착역</span></div></div><div class="rw insp"><div class="tm">09:06</div><div class="bd"><span class="tg">종착순회</span><span class="pl">진주</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 진주 · 59분  (숙소(역내))</div></div><div class="rw plat hl"><div class="tm">10:05</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1946 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">10:30</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1946 운행</span></div></div><div class="rw arr"><div class="tm">13:11</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1946 · 종착역</span></div></div><div class="rw insp"><div class="tm">13:26</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 동대구 · 3시간 14분  (종착순회~재출무)</div></div><div class="rw chulmu hl"><div class="tm">16:40</div><div class="bd"><span class="tg">재출무</span><span class="pl">동대구</span><span class="nt">체류 2시간↑ (숙소, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 동대구 · 35분  (재출무~승강홈)</div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 동대구 · 3시간 49분</div></div><div class="rw plat hl"><div class="tm">17:15</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1947 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">17:40</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1947 운행</span></div></div><div class="rw arr"><div class="tm">19:13</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1947 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">19:43</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">4다이아</span><span class="dc">03004</span><span class="rt">진주·동대구</span><span class="tspan">11:25~21:35</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">11:25</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">11:55</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1943 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">12:05</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">1943 운행</span></div></div><div class="rw arr"><div class="tm">12:39</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">1943 · 종착역</span></div></div><div class="rw insp"><div class="tm">12:54</div><div class="bd"><span class="tg">종착순회</span><span class="pl">진주</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 진주 · 46분  (역 대기)</div></div><div class="rw plat hl"><div class="tm">13:40</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1948 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">14:05</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1948 운행</span></div></div><div class="rw arr"><div class="tm">16:31</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1948 · 종착역</span></div></div><div class="rw insp"><div class="tm">16:46</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 동대구 · 1시간 50분  (종착순회~재출무)</div></div><div class="rw chulmu hl"><div class="tm">18:36</div><div class="bd"><span class="tg">재출무</span><span class="pl">동대구</span><span class="nt">체류 2시간↑ (숙소, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 동대구 · 35분  (재출무~승강홈)</div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 동대구 · 2시간 25분</div></div><div class="rw plat hl"><div class="tm">19:11</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1949 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">19:36</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1949 운행</span></div></div><div class="rw arr"><div class="tm">21:05</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1949 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">21:35</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">5다이아</span><span class="dc">03005</span><span class="rt">진주·동대구</span><span class="tspan">14:23~23:34</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">14:23</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">15:53</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1945 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">16:03</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">1945 운행</span></div></div><div class="rw arr"><div class="tm">16:43</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">1945 · 종착역</span></div></div><div class="rw insp"><div class="tm">16:58</div><div class="bd"><span class="tg">종착순회</span><span class="pl">진주</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 진주 · 30분  (역 대기)</div></div><div class="rw plat hl"><div class="tm">17:28</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1950 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">17:53</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1950 운행</span></div></div><div class="rw arr"><div class="tm">20:17</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1950 · 종착역</span></div></div><div class="rw insp"><div class="tm">20:32</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 동대구 · 31분  (역 대기)</div></div><div class="rw plat hl"><div class="tm">21:03</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1951 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">21:28</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1951 운행</span></div></div><div class="rw arr"><div class="tm">23:04</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1951 · 종착역</span></div></div><div class="rw insp"><div class="tm">23:19</div><div class="bd"><span class="tg">종착순회</span><span class="pl">마산</span><span class="nt">도착 +15분 (종착역)</span></div></div><div class="rw end"><div class="tm">23:34</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">6다이아</span><span class="dc">03006</span><span class="rt">진주·동대구</span><span class="tspan">18:34~08:46</span><span class="ov">박사업</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">18:34</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">19:04</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1947 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">19:14</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">1947 운행</span></div></div><div class="rw arr"><div class="tm">19:56</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">1947 · 종착역</span></div></div><div class="rw insp"><div class="tm">20:11</div><div class="bd"><span class="tg">종착순회</span><span class="pl">진주</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 진주 · 44분  (역 대기)</div></div><div class="rw plat hl"><div class="tm">20:55</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1952 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">21:20</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1952 운행</span></div></div><div class="rw arr"><div class="tm">23:39</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1952 · 종착역</span></div></div><div class="rw insp"><div class="tm">23:54</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br stay"><div class="bt">🛏️ 외박(수면) · 동대구 · 4시간 52분</div></div><div class="rw wake hl"><div class="tm">04:46</div><div class="bd"><span class="tg">기상</span><span class="pl">동대구</span><span class="nt">출무 1시간 전</span></div></div><div class="rw chulmu"><div class="tm">05:46</div><div class="bd"><span class="tg">출무</span><span class="pl">동대구</span><span class="nt">비번날 아침 출무 (숙소(역내), 열차 55분 전)</span></div></div><div class="rw alco"><div class="tm">06:11</div><div class="bd"><span class="tg">음주측정</span><span class="pl">동대구역</span><span class="nt">출발 30분 전</span></div></div><div class="rw plat hl"><div class="tm">06:16</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1941 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">06:41</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1941 운행</span></div></div><div class="rw arr"><div class="tm">08:16</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1941 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">08:46</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">7다이아</span><span class="dc">03007</span><span class="rt">부전</span><span class="tspan">18:13~08:18</span><span class="ov">박사업</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">18:13</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">18:43</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1982 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">18:53</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 부전</span><span class="nt">1982 운행</span></div></div><div class="rw arr"><div class="tm">20:27</div><div class="bd"><span class="tg">종착</span><span class="pl">부전 도착</span><span class="nt">1982 · 종착역</span></div></div><div class="rw insp"><div class="tm">20:42</div><div class="bd"><span class="tg">종착순회</span><span class="pl">부전</span><span class="nt">도착 +15분</span></div></div><div class="rw lodge"><div class="tm">20:49</div><div class="bd"><span class="tg">숙소도착</span><span class="pl">부전</span><span class="nt">도보 7분</span></div></div><div class="rw br stay"><div class="bt">🛏️ 외박(수면) · 부전 · 7시간 28분</div></div><div class="rw wake hl"><div class="tm">04:17</div><div class="bd"><span class="tg">기상</span><span class="pl">부전</span><span class="nt">출무 1시간 전</span></div></div><div class="rw chulmu"><div class="tm">05:17</div><div class="bd"><span class="tg">출무</span><span class="pl">부전</span><span class="nt">비번날 아침 출무 (숙소, 열차 55분 전)</span></div></div><div class="rw lodge"><div class="tm">05:31</div><div class="bd"><span class="tg">숙소출발</span><span class="pl">부전</span><span class="nt">음주 -7분 (도보)</span></div></div><div class="rw alco"><div class="tm">05:38</div><div class="bd"><span class="tg">음주측정</span><span class="pl">부전역</span><span class="nt">출발 34분 전</span></div></div><div class="rw plat hl"><div class="tm">05:43</div><div class="bd"><span class="tg">승강홈</span><span class="pl">부전</span><span class="nt">시발점검 · 1961 · 열차 29분 전 (4분 일찍·시발점검 연장)</span></div></div><div class="rw run"><div class="tm">06:12</div><div class="bd"><span class="tg">출발</span><span class="pl">부전 → 마산</span><span class="nt">1961 운행</span></div></div><div class="rw arr"><div class="tm">07:48</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1961 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">08:18</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">8다이아</span><span class="dc">03008</span><span class="rt">진주·동대구</span><span class="tspan">20:26~12:34</span><span class="ov">박사업</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">20:26</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">20:56</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1949 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">21:06</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 진주</span><span class="nt">1949 운행</span></div></div><div class="rw arr"><div class="tm">21:48</div><div class="bd"><span class="tg">종착</span><span class="pl">진주 도착</span><span class="nt">1949 · 종착역</span></div></div><div class="rw insp"><div class="tm">22:03</div><div class="bd"><span class="tg">종착순회</span><span class="pl">진주</span><span class="nt">도착 +15분</span></div></div><div class="rw br stay"><div class="bt">🛏️ 외박(수면) · 진주 · 6시간 43분</div></div><div class="rw wake hl"><div class="tm">04:46</div><div class="bd"><span class="tg">기상</span><span class="pl">진주</span><span class="nt">출무 1시간 전</span></div></div><div class="rw chulmu"><div class="tm">05:46</div><div class="bd"><span class="tg">출무</span><span class="pl">진주</span><span class="nt">비번날 아침 출무 (숙소(역내), 열차 55분 전)</span></div></div><div class="rw alco"><div class="tm">06:11</div><div class="bd"><span class="tg">음주측정</span><span class="pl">진주역</span><span class="nt">출발 30분 전</span></div></div><div class="rw plat hl"><div class="tm">06:16</div><div class="bd"><span class="tg">승강홈</span><span class="pl">진주</span><span class="nt">시발점검 · 1942 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">06:41</div><div class="bd"><span class="tg">출발</span><span class="pl">진주 → 동대구</span><span class="nt">1942 운행</span></div></div><div class="rw arr"><div class="tm">09:16</div><div class="bd"><span class="tg">종착</span><span class="pl">동대구 도착</span><span class="nt">1942 · 종착역</span></div></div><div class="rw insp"><div class="tm">09:31</div><div class="bd"><span class="tg">종착순회</span><span class="pl">동대구</span><span class="nt">도착 +15분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게 · 동대구 · 28분  (역 대기)</div></div><div class="rw plat hl"><div class="tm">09:59</div><div class="bd"><span class="tg">승강홈</span><span class="pl">동대구</span><span class="nt">시발점검 · 1943 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">10:24</div><div class="bd"><span class="tg">출발</span><span class="pl">동대구 → 마산</span><span class="nt">1943 운행</span></div></div><div class="rw arr"><div class="tm">12:04</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1943 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">12:34</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">9다이아</span><span class="dc">03009</span><span class="rt">순천</span><span class="tspan">07:10~17:28</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">07:10</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">07:40</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1961 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">07:50</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 순천</span><span class="nt">1961 운행</span></div></div><div class="rw arr"><div class="tm">09:39</div><div class="bd"><span class="tg">종착</span><span class="pl">순천 도착</span><span class="nt">1961 · 종착역</span></div></div><div class="rw insp"><div class="tm">09:54</div><div class="bd"><span class="tg">종착순회</span><span class="pl">순천</span><span class="nt">도착 +15분</span></div></div><div class="rw lodge"><div class="tm">10:11</div><div class="bd"><span class="tg">숙소도착</span><span class="pl">순천</span><span class="nt">도보 17분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 순천 · 3시간 59분  (숙소도착~재출무)</div></div><div class="rw chulmu hl"><div class="tm">14:10</div><div class="bd"><span class="tg">재출무</span><span class="pl">순천</span><span class="nt">체류 2시간↑ (숙소, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 순천 · 18분  (재출무~숙소출발)</div></div><div class="rw lodge"><div class="tm">14:28</div><div class="bd"><span class="tg">숙소출발</span><span class="pl">순천</span><span class="nt">승강홈 -17분 (도보)</span></div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 순천 · 4시간 17분</div></div><div class="rw plat hl"><div class="tm">14:45</div><div class="bd"><span class="tg">승강홈</span><span class="pl">순천</span><span class="nt">시발점검 · 1964 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">15:10</div><div class="bd"><span class="tg">출발</span><span class="pl">순천 → 마산</span><span class="nt">1964 운행</span></div></div><div class="rw arr"><div class="tm">16:58</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1964 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">17:28</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">10다이아</span><span class="dc">03010</span><span class="rt">순천</span><span class="tspan">12:09~20:09</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">12:09</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">12:39</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1981 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">12:49</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 순천</span><span class="nt">1981 운행</span></div></div><div class="rw arr"><div class="tm">14:29</div><div class="bd"><span class="tg">종착</span><span class="pl">순천 도착</span><span class="nt">1981 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw lodge"><div class="tm">14:46</div><div class="bd"><span class="tg">숙소도착</span><span class="pl">순천</span><span class="nt">도보 17분</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게① · 순천 · 1시간 17분  (숙소도착~재출무)</div></div><div class="rw chulmu hl"><div class="tm">16:03</div><div class="bd"><span class="tg">재출무</span><span class="pl">순천</span><span class="nt">체류 2시간↑ (숙소, 열차 -1h)</span></div></div><div class="rw br rest"><div class="bt">☕ 휴게② · 순천 · 33분  (재출무~숙소출발)</div></div><div class="rw lodge"><div class="tm">16:36</div><div class="bd"><span class="tg">숙소출발</span><span class="pl">순천</span><span class="nt">승강홈 -17분 (도보)</span></div></div><div class="rw br sum"><div class="bt">Σ 총 휴게 · 순천 · 1시간 50분</div></div><div class="rw plat hl"><div class="tm">16:53</div><div class="bd"><span class="tg">승강홈</span><span class="pl">순천</span><span class="nt">교대 · 1982 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">17:03</div><div class="bd"><span class="tg">출발</span><span class="pl">순천 → 마산</span><span class="nt">1982 운행</span></div></div><div class="rw arr"><div class="tm">18:51</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1982 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">20:09</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<details class="card"><summary class="ch"><span class="dn">11다이아</span><span class="dc">03011</span><span class="rt">순천</span><span class="tspan">19:46~08:33</span><span class="ov">박사업</span><span class="arrow">▾</span></summary><div class="tl"><div class="rw chulmu"><div class="tm">19:46</div><div class="bd"><span class="tg">출무</span><span class="pl">마산 사업소</span><span class="nt">초기 출무 (근무표 기준)</span></div></div><div class="rw plat hl"><div class="tm">20:16</div><div class="bd"><span class="tg">승강홈</span><span class="pl">마산</span><span class="nt">교대 · 1963 · 열차 10분 전</span></div></div><div class="rw run"><div class="tm">20:26</div><div class="bd"><span class="tg">출발</span><span class="pl">마산 → 순천</span><span class="nt">1963 운행</span></div></div><div class="rw arr"><div class="tm">22:05</div><div class="bd"><span class="tg">종착</span><span class="pl">순천 도착</span><span class="nt">1963 · 종착역</span></div></div><div class="rw insp"><div class="tm">22:20</div><div class="bd"><span class="tg">종착순회</span><span class="pl">순천</span><span class="nt">도착 +15분</span></div></div><div class="rw lodge"><div class="tm">22:37</div><div class="bd"><span class="tg">숙소도착</span><span class="pl">순천</span><span class="nt">도보 17분</span></div></div><div class="rw br stay"><div class="bt">🛏️ 외박(수면) · 순천 · 5시간 52분</div></div><div class="rw wake hl"><div class="tm">04:29</div><div class="bd"><span class="tg">기상</span><span class="pl">순천</span><span class="nt">출무 1시간 전</span></div></div><div class="rw chulmu"><div class="tm">05:29</div><div class="bd"><span class="tg">출무</span><span class="pl">순천</span><span class="nt">비번날 아침 출무 (숙소, 열차 55분 전)</span></div></div><div class="rw lodge"><div class="tm">05:37</div><div class="bd"><span class="tg">숙소출발</span><span class="pl">순천</span><span class="nt">음주 -17분 (도보)</span></div></div><div class="rw alco"><div class="tm">05:54</div><div class="bd"><span class="tg">음주측정</span><span class="pl">순천역</span><span class="nt">출발 30분 전</span></div></div><div class="rw plat hl"><div class="tm">05:59</div><div class="bd"><span class="tg">승강홈</span><span class="pl">순천</span><span class="nt">시발점검 · 1962 · 열차 25분 전</span></div></div><div class="rw run"><div class="tm">06:24</div><div class="bd"><span class="tg">출발</span><span class="pl">순천 → 마산</span><span class="nt">1962 운행</span></div></div><div class="rw arr"><div class="tm">08:03</div><div class="bd"><span class="tg">종착</span><span class="pl">마산 도착</span><span class="nt">1962 · 교대 넘김 (종착순회 없음)</span></div></div><div class="rw end"><div class="tm">08:33</div><div class="bd"><span class="tg">종료</span><span class="pl">마산 사업소</span><span class="nt">근무 종료 (근무표 기준)</span></div></div></div></details>
+<div class="ft">근무표·다이아 시각표 기반 자동계산 · 실제 운영(회송·정리 등)에 따라 ±수분 가능</div>
+</body></html></script><script>
+var ANN_SRC="<!DOCTYPE html><html lang=\"ko\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1\">\n<title>\uc5f0\ucc28 \ucd94\ucc9c \ud14c\uc2a4\ud2b8 \u2014 \ubc30\ucc44\uc740<\/title><style>\n:root{--bg:#f5f4f1;--card:#fff;--ink:#1d1d1f;--muted:#8c8881;--faint:#b8b3aa;--line:#ecebe6;--accent:#e8623d;--grn:#5a8763;--pur:#6f5e94}\n*{box-sizing:border-box;margin:0;padding:0}\nbody{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;padding:16px;max-width:480px;margin:0 auto}\nh1{font-size:19px;margin-bottom:2px}.sub{color:var(--muted);font-size:12px;margin-bottom:14px}\n.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:14px}\n.ct{font-size:14px;font-weight:800;margin-bottom:10px}\n/* \uc21c\uc704\ud45c */\n.rk{display:flex;gap:9px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;flex-wrap:wrap}\n.rk:last-child{border:0}\n.rk .no{font-weight:800;font-size:14px;min-width:22px}\n.rk .dn2{font-weight:800}.rk .rt2{color:var(--muted);font-size:11px}\n.rk .why{width:100%;font-size:11px;color:var(--muted);padding-left:31px}\n.rk.top .no{color:var(--accent)}\n.rk.bot{opacity:.75}\n.rk .score{margin-left:auto;background:#f1efe9;color:var(--muted);font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:99px;white-space:nowrap}\n#rankfold>summary::-webkit-details-marker{display:none}\n.medal{font-size:13px}\n/* \ucd94\ucc9c\uae30 */\n.opt{margin-bottom:12px}\n.opt .lb3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}\n.seg2{display:flex;gap:5px}\n.seg2 button{flex:1;padding:8px 4px;border:1px solid var(--line);border-radius:9px;background:#faf9f6;font-size:12px;font-weight:700;color:var(--muted);font-family:inherit}\n.seg2 button.on{background:var(--ink);color:#fff;border-color:var(--ink)}\n.go{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:14px;font-weight:800;font-family:inherit;margin-top:4px}\n/* \uacb0\uacfc */\n.res{margin-top:14px}\n.reco{border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}\n.reco.best{border-color:#f0c9a8;background:#fffaf5}\n.reco .rt3{font-size:13px;font-weight:800;margin-bottom:6px}\n.reco .rt3 .tagb{background:var(--accent);color:#fff;font-size:10px;padding:2px 8px;border-radius:99px;margin-left:5px;vertical-align:1px}\n.reco .days{font-size:12.5px;margin-bottom:4px}\n.reco .days b{color:var(--accent)}\n.reco .why2{font-size:11.5px;color:var(--muted);line-height:1.65}\n.mini-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:9px}\n.mc{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:7px;font-size:9.5px;background:#f1efe9;color:var(--faint)}\n.mc .d2{font-weight:800;font-size:10.5px}\n.mc.work{background:#eee7e2;color:#8c7a70}\n.mc.stb{background:#efeaf6;color:var(--pur)}\n.mc.free{background:#e7f0e9;color:var(--grn)}\n.mc.ann{background:var(--accent);color:#fff}\n.mc.freed{background:#cfe3d4;color:#3c6b4a}\n.mc.edub{box-shadow:inset 0 0 0 1.5px #c9902f}\n.legend2{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--muted);margin-top:8px}\n.legend2 span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px;background:var(--c)}\n.note{font-size:10.5px;color:var(--faint);margin-top:10px;line-height:1.6}\n<\/style><\/head><body>\n<h1>\ud83c\udf34 \uc5f0\ucc28 \ucd94\ucc9c<\/h1>\n<div class=\"sub\">2026\ub144 7\uc6d4 \uc2a4\ucf00\uc904 \uae30\uc900 \u00b7 \ub2e4\uc774\uc544 \uc120\ud638 \uc21c\uc704 \ubc18\uc601<\/div>\n\n<div class=\"card\"><details id=\"rankfold\"><summary class=\"ct\" style=\"cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:6px\">\ud83c\udfc6 \ub2e4\uc774\uc544 \ucd5c\uc885 \uc21c\uc704 \u00b7 \ubd80\ub2f4\uc810\uc218 <span style=\"color:var(--faint);font-weight:600;font-size:11px;margin-left:auto\">\ud0ed\ud574\uc11c \ud3bc\uce58\uae30 \u25be<\/span><\/summary><div id=\"ranktbl\"><\/div><\/details><\/div>\n\n<div class=\"card\" style=\"display:none\"><div class=\"ct\">\ud83d\udcda \uc18c\uc9d1\uad50\uc721<\/div><div id=\"edubox\"><\/div><\/div>\n<div class=\"card\"><div class=\"ct\">\ud83c\udf34 \ucd5c\uc801 \uc5f0\ucc28\uc77c \ucd94\ucc9c<\/div>\n<div class=\"opt\"><div class=\"lb3\">\uc5f0\ucc28 \uba87 \uac1c\uae4c\uc9c0 \uc4f8 \uac70\uc57c? (\ucc28\uac10 \uae30\uc900)<\/div><div class=\"seg2\" id=\"kSel\">\n<button data-k=\"1\">1\uc77c<\/button><button data-k=\"2\" class=\"on\">2\uc77c<\/button><button data-k=\"3\">3\uc77c<\/button><button data-k=\"4\">4\uc77c<\/button><button data-k=\"5\">5\uc77c<\/button><\/div><\/div>\n<div class=\"opt\"><div class=\"lb3\">\ubb50\uac00 \ub354 \uc911\uc694\ud574?<\/div><div class=\"seg2\" id=\"mSel\">\n<button data-m=\"streak\" class=\"on\">\ud83c\udfd6 \uc5f0\uc18d\uc73c\ub85c \uae38\uac8c \uc26c\uae30<\/button><button data-m=\"avoid\">\ud83d\ude2e\u200d\ud83d\udca8 \ud798\ub4e0 \ub2e4\uc774\uc544 \ud53c\ud558\uae30<\/button><\/div><\/div>\n<button class=\"go\" onclick=\"run()\">\ucd94\ucc9c \ubc1b\uae30<\/button>\n<div class=\"res\" id=\"res\"><\/div>\n<div class=\"note\">\u00b7 \uc5f0\ucc28\ub294 \uadfc\ubb34 \uc778\uc815\uc774\ub77c \uc2e4\uc801(\uc2dc\uac04\u00b7\uac70\ub9ac)\uc740 \uadf8\ub300\ub85c \uc720\uc9c0\ub428<br>\u00b7 \uc57c\uac04 \ub2e4\uc774\uc544\uc5d0 \uc5f0\ucc28 \uc4f0\uba74 \ub2e4\uc74c\ub0a0 \ube44\ubc88 \uc544\uce68 \uadfc\ubb34\ub3c4 \uc5c6\uc5b4\uc838\uc11c \uadf8\ub0a0\uae4c\uc9c0 \ud1b5\uc73c\ub85c \uc27c<br>\u00b7 7/1(03E05)\uc740 \uad50\uc721 \ud3ec\ud568\uc774\ub77c \uc5f0\ucc28 \ud6c4\ubcf4\uc5d0\uc11c \uc81c\uc678<br>\u00b7 \u21a9\ufe0f \ubd80\ub2f4\uc810\uc218\uac00 \uac19\uc73c\uba74 \uc804\ub0a0\uc774 \uc77c\ucc0d \ub05d\ub098\ub294 \ub0a0(\ud734\ubb34 > \ube44\ubc88 \uc870\uae30\ubcf5\uadc0 > \uc774\ub978 \ud1f4\uadfc)\uc5d0 \uac00\uc810<br>\u00b7 \u26a0\ufe0f \uc5f0\ucc28 \ucc28\uac10 \uaddc\uce59 \ubc18\uc601\ub428: \uc57c\uac04 \ub2e8\ub3c5=1\uc77c(\ube44\ubc88 \ubb34\ub8cc) / \uc8fc+\uc57c \ubd99\uc784=3\uc77c / \uc8fc+\uc57c+\uc8fc \ubd99\uc784=4\uc77c / \uc57c\uac04+\ub2e4\uc74c \uc8fc\uac04=3\uc77c \u2014 \uc5f0\ucc28\uac00 \ube44\ubc88\uc744 \uc9c0\ub098 \uc774\uc5b4\uc9c0\uba74 \ube44\ubc88\ub0a0\ub3c4 \ucc28\uac10<\/div>\n<\/div>\n\n<script>\n/* ===== \uc21c\uc704 (\uc131\ud5a5+\ub370\uc774\ud130) ===== */\nconst RANKS=[\n ['1','9\ub2e4\uc774\uc544','03009','\uc21c\ucc9c \uc8fc\uac04','\uadfc\ubb34 9:18 \u00b7 \ucd1d\ud734\uac8c 4:17(\uc219\uc18c) \u00b7 \uc655\ubcf5 1\ud68c','\ud734\uac8c \ucd5c\ub2e4 + \uc8fc\uac04\uc774\ub77c \ub9ac\ub4ec \ubb34\uc190\uc0c1. \ub3d9\uae09 7\uacfc\uc758 \ucc28\uc774\ub294 \"\uc800\ub141\uc5d0 \uc9d1\uc5d0 \uc788\ub2e4\"\ub294 \uac83'],\n ['2','7\ub2e4\uc774\uc544','03007','\ubd80\uc804 \uc57c\uac04','\uc6b4\ud589 3:10 \ucd5c\uc18c \u00b7 \uc218\uba74 7:23 \ucd5c\ub2e4','\uc57c\uac04 \uc911 \uc555\ub3c4\uc801 1\ub4f1 \u2014 \uc655\ubcf5 1\ud68c\uc5d0 \ubc24\uc7a0\uc774 \uc628\uc804\ud568. \uc678\ubc15\uc774\ub77c\ub294 \uac83\ub9cc 9\uc5d0 \ubc00\ub9bc'],\n ['3','10\ub2e4\uc774\uc544','03010','\uc21c\ucc9c \uc8fc\uac04','\uadfc\ubb34 7:00 \ucd5c\ub2e8 \u00b7 \uc810\uac80\u00b7\uc21c\ud68c 0\ud68c','\ubc1b\uc544\ud0c0\uae30\ub9cc \ud558\ub294 \uc720\uc77c\ud55c \ub2e4\uc774\uc544. \ubab8\uc740 \uc81c\uc77c \ud3b8\ud568 (\uc2e4\uc801 \uc9e7\uc740 \uac8c \uc720\uc77c\ud55c \ud760)'],\n ['4','11\ub2e4\uc774\uc544','03011','\uc21c\ucc9c \uc57c\uac04','\uc218\uba74 5:47 \u00b7 \uc655\ubcf5 1\ud68c\uc529 \u00b7 \uc2e4\uc801 11:47','\uc21c\ucc9c \ub77c\uc778 \uc57c\uac04 \u2014 \ubb34\ub09c\ud55c \uc218\uba74\uc5d0 \uc2e4\uc801\ub3c4 \ub4e0\ub4e0'],\n ['5','1\ub2e4\uc774\uc544','03001','\uc9c4\uc8fc\u00b7\ub3d9\ub300\uad6c','\ud68c\uc1a1 \uc9c4\uc8fc\u884c \u00b7 \ud734\uac8c 4:34 \u00b7 16:31 \uc870\uae30\uc885\ub8cc','\uccab \uad6c\uac04\uc774 \ud68c\uc1a1\uc774\ub77c \uc77c \uc548 \ud55c \uae30\ubd84 + \uc800\ub141\uc774 \ud1b5\uc9f8\ub85c \ub0a8\uc74c. \uc0c8\ubcbd \uae30\uc0c1\ub9cc \uac10\uc218'],\n ['6','4\ub2e4\uc774\uc544','03004','\uc9c4\uc8fc\u00b7\ub3d9\ub300\uad6c','\uadfc\ubb34 9:10 \u00b7 \uc815\ucc28 18 \ucd5c\uc18c \u00b7 11:25 \ucd9c\ubb34','\ub3d9\ub300\uad6c\ud615 \uafc0\ud1b5 \u2014 \uc544\uce68 \uc5ec\uc720\ub86d\uace0 \uc815\ucc28\ub3c4 \uc81c\uc77c \uc801\uc74c. 21:35 \uc885\ub8cc\uac00 1\ubcf4\ub2e4 \uc544\uc26c\uc6b4 \uc810'],\n ['7','3\ub2e4\uc774\uc544','03003','\uc9c4\uc8fc\u00b7\ub3d9\ub300\uad6c','\uadfc\ubb34 11:05 \u00b7 \ucd1d\ud734\uac8c 4:48','\ud734\uac8c\ub294 \ub9ce\uc740\ub370 \ud558\ub8e8\uac00 \uae40'],\n ['8','5\ub2e4\uc774\uc544','03005','\uc9c4\uc8fc\u00b7\ub3d9\ub300\uad6c','\uadfc\ubb34 8:11 \u00b7 \ud734\uac8c 1\uc2dc\uac04\ubfd0 \u00b7 23:34 \uc885\ub8cc','\uc9e7\uc9c0\ub9cc \uc274 \ud2c8 \uc5c6\uace0 \uc2ec\uc57c \uc885\ub8cc + \uc21c\ud68c 3\ud68c'],\n ['9','6\ub2e4\uc774\uc544','03006','\ub3d9\ub300\uad6c \uc57c\uac04','\uc218\uba74 4:52 \ucd5c\uc18c \u00b7 6\ub7c9','\uc7a0\uc774 \uc81c\uc77c \ubd80\uc871. \uadf8\ub098\ub9c8 08:46 \uc870\uae30 \ubcf5\uadc0\uac00 \uc704\uc548'],\n ['10','8\ub2e4\uc774\uc544','03008','\uc9c4\uc8fc \uc57c\uac04','\uc775\uc77c 12:34 \uc885\ub8cc \u00b7 \uc21c\uc218\uc6b4\ud589 4:57 \ucd5c\uc7a5','\uc774\ud2c0\uc744 \ud1b5\uc9f8\ub85c \uc7a1\uc544\uba39\ub294 \uad6c\uc870'],\n ['11','2\ub2e4\uc774\uc544','03002','\ubd80\uc804 2\uc655\ubcf5','\uc815\ucc28 40\ud68c \u00b7 \uc6b4\ud589 5:55 \u00b7 \uadfc\ubb34 12:00','\uc655\ubcf5 2\ubc88 + \uc815\ucc28 \ud140 \uc9e7\uc74c. \uc774\uacac \uc5c6\ub294 \uaf34\ucc0c']];\ndocument.getElementById('ranktbl').innerHTML=RANKS.map(([n,d,c,r,st,why])=>{\n const m=n==='1'?'\ud83e\udd47':n==='2'?'\ud83e\udd48':n==='3'?'\ud83e\udd49':'';\n return `<div class=\"rk ${+n<=3?'top':''} ${+n>=10?'bot':''}\"><span class=\"no\">${m||n+'\uc704'}<\/span><span class=\"dn2\">${d}<\/span><span class=\"rt2\">${r}<\/span><span class=\"score\">\ubd80\ub2f4 ${n}\uc810<\/span><div class=\"why\">${st}<br>${why}<\/div><\/div>`;}).join('');\n\n/* ===== \uc18c\uc9d1\uad50\uc721 \ub80c\ub354 (\uc544\ub798 \ub370\uc774\ud130 \uc815\uc758 \ud6c4 \ud638\ucd9c) ===== */\n/* ===== 7\uc6d4 \ub370\uc774\ud130 ===== */\nconst BAD={'03009':1,'03007':2,'03010':3,'03011':4,'03001':5,'03004':6,'03003':7,'03005':8,'03006':9,'03008':10,'03002':11};\nconst NM={'03001':'1','03002':'2','03003':'3','03004':'4','03005':'5','03006':'6','03007':'7','03008':'8','03009':'9','03010':'10','03011':'11'};\nconst NIGHT=['03006','03007','03008','03011'];\nconst TG={'03E05':'23:34','03001':'16:31','03002':'20:54','03003':'19:43','03004':'21:35','03005':'23:34','03006':'08:46','03007':'08:18','03008':'12:34','03009':'17:28','03010':'20:09','03011':'08:33'};\nconst CM={'03E05':'13:23','03001':'05:51','03002':'07:24','03003':'07:38','03004':'11:25','03005':'14:23','03006':'18:34','03007':'18:13','03008':'20:26','03009':'07:10','03010':'12:09','03011':'19:46'};\nconst EDU={1:[15,16],2:[12,13],3:[12,13],4:[16,17],5:[14,15],6:[11,12],7:[16,17]};\nconst EDUD=EDU[7]; // \uc774\ubc88 \ub2ec \uc18c\uc9d1\uad50\uc721 \ud6c4\ubcf4\uc77c\nfunction eduAvail(d){ // 09:00~11:00 \ucc38\uc11d \uac00\ub2a5 \uc5ec\ubd80\n const e=JUL.find(x=>x[0]===d);if(!e)return{ok:false,why:'\ud574\ub2f9 \uc5c6\uc74c'};\n if(e[1]==='off')return{ok:true,cat:2,why:'\ud734\ubb34 \u2014 \ucc38\uc11d \uac00\ub2a5 (\uc26c\ub294 \ub0a0\uc774\uc9c0\ub9cc \uac00\uc57c \ud568)'};\n if(e[1]==='stb'){const n=JUL.find(x=>x[0]===d-1);const tg=n&&TG[n[2]]?T2M(TG[n[2]]):720;\n   return tg>540?{ok:false,why:`\ube44\ubc88 \uc544\uce68 \uadfc\ubb34(~${TG[n[2]]})\uac00 9~11\uc2dc\uc640 \uacb9\uce68 \u2192 \ubd88\uac00`}\n                :{ok:true,cat:1,why:`\ube44\ubc88 \u2014 ${TG[n[2]]} \ubcf5\uadc0 \ud6c4 \ucc38\uc11d \uac00\ub2a5 (\uc57c\uac04 \uc9c1\ud6c4\ub77c \ud798\ub4e6)`};}\n const cm=CM[e[2]]?T2M(CM[e[2]]):0, tg=TG[e[2]]?T2M(TG[e[2]]):1440;\n const night=NIGHT.includes(e[2]);\n const ov=night?false:(cm<660&&tg>540);\n return ov?{ok:false,why:`${NM[e[2]]||''}\ub2e4\uc774\uc544(${CM[e[2]]}~${TG[e[2]]})\uc640 \uacb9\uce68 \u2192 \ubd88\uac00`}\n          :{ok:true,cat:3,buf:cm-660,why:`${NM[e[2]]||'E'}\ub2e4\uc774\uc544 \ucd9c\ubb34 ${CM[e[2]]} \uc804\uc5d0 \ucc38\uc11d \uac00\ub2a5 (\ud734\uc77c \uc548 \uc500 \ud83d\udc4d)`};}\nfunction eduPick(){\n const opts=EDUD.map(d=>({d,...eduAvail(d)})).filter(x=>x.ok);\n if(!opts.length)return null;\n opts.sort((a,b)=>(b.cat-a.cat)||((b.buf||0)-(a.buf||0)));\n return opts[0].d;}\nconst T2M=t=>{const q=t.split(':');return +q[0]*60+ +q[1];};\nfunction prevEnd(d){ // \uc5f0\ucc28 \ud6c4\ubcf4\uc77c \uc804\ub0a0 \ud1f4\uadfc\uc2dc\uac01(\ubd84). \ud734\ubb34=0(\ucd5c\uace0)\n const p=JUL.find(x=>x[0]===d-1);if(!p)return 0;\n if(p[1]==='off')return 0;\n if(p[1]==='stb'){const n=JUL.find(x=>x[0]===d-2);return (n&&n[2]&&TG[n[2]])?T2M(TG[n[2]]):720;}\n return TG[p[2]]?T2M(TG[p[2]]):1440;}\nfunction prevLabel(d){const p=JUL.find(x=>x[0]===d-1);if(!p||p[1]==='off')return '\uc804\ub0a0 \ud734\ubb34';\n if(p[1]==='stb'){const n=JUL.find(x=>x[0]===d-2);return '\uc804\ub0a0 \ube44\ubc88('+(n&&TG[n[2]]?TG[n[2]]:'')+' \ubcf5\uadc0)';}\n return '\uc804\ub0a0 '+(TG[p[2]]||'')+' \ud1f4\uadfc';}\nconst JUL=[[1,'work','03E05'],[2,'work','03006'],[3,'stb'],[4,'work','03002'],[5,'off'],[6,'off'],\n[7,'work','03004'],[8,'work','03008'],[9,'stb'],[10,'work','03009'],[11,'off'],[12,'off'],\n[13,'work','03010'],[14,'work','03011'],[15,'stb'],[16,'work','03003'],[17,'off'],[18,'off'],\n[19,'work','03004'],[20,'work','03006'],[21,'stb'],[22,'work','03001'],[23,'off'],[24,'off'],\n[25,'work','03005'],[26,'work','03007'],[27,'stb'],[28,'work','03009'],[29,'off'],[30,'off'],[31,'work','03003']];\nconst CAND=JUL.filter(x=>x[1]==='work'&&BAD[x[2]]).map(x=>x[0]); // \uc5f0\ucc28 \uac00\ub2a5\uc77c (03E05 \uc81c\uc678)\nconst DOW=['\uc218','\ubaa9','\uae08','\ud1a0','\uc77c','\uc6d4','\ud654']; // 7/1=\uc218\n\n/* ===== \ucd94\ucc9c \ub85c\uc9c1 ===== */\nfunction freeMap(sel){\n const F={};\n JUL.forEach(([d,t,dia])=>{\n   if(t==='off')F[d]=1;\n   else if(sel.includes(d))F[d]=1;\n   else if(t==='stb'){const prev=JUL.find(x=>x[0]===d-1);F[d]=(prev&&sel.includes(prev[0]))?1:0;}\n   else F[d]=0;});\n return F;}\nfunction streaks(F){\n const out=[];let s=null;\n for(let d=1;d<=31;d++){if(F[d]){if(s===null)s=d;}else{if(s!==null){out.push([s,d-1]);s=null;}}}\n if(s!==null)out.push([s,31]);\n return out.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]));}\nfunction evalSel(sel,mode){\n const F=freeMap(sel);const st=streaks(F);const maxS=st.length?st[0][1]-st[0][0]+1:0;\n const bad=sel.reduce((a,d)=>a+BAD[JUL.find(x=>x[0]===d)[2]],0);\n const prevPts=sel.reduce((a,d)=>a+(1440-prevEnd(d)),0); // \uc804\ub0a0 \uc77c\ucc0d \ub05d\ub0a0\uc218\ub85d \uac00\uc810\n const score=mode==='streak'?maxS*1e8+bad*1e5+prevPts:bad*1e8+prevPts*1e3+maxS*10;\n return {score,maxS,bad,prevPts,st,F};}\nfunction annCost(sel){\n // \uaddc\uce59: \uc57c\uac04 \uc5f0\ucc28 \u2192 \ube44\ubc88\ub3c4 \uc5f0\ucc28 \ud45c\uc2dc(\uc790\ub3d9). \ucc28\uac10 = \uc5f0\uc18d \uc5f0\ucc28 \ube14\ub85d \uae38\uc774.\n // \ub2e8, [\uc57c\uac04+\ube44\ubc88] \ub531 \ub458\ub85c \ub05d\ub098\ub294 \ube14\ub85d\ub9cc \ube44\ubc88 \ubb34\ub8cc \u2192 1\uc77c \ucc28\uac10.\n const selSet=new Set(sel);const marked=new Set(sel);\n sel.forEach(d=>{const e=JUL.find(x=>x[0]===d);if(e&&NIGHT.includes(e[2]))marked.add(d+1);});\n const days=[...marked].sort((a,b)=>a-b);\n let cost=0,i=0;\n while(i<days.length){\n   let j=i;while(j+1<days.length&&days[j+1]===days[j]+1)j++;\n   const run=days.slice(i,j+1);\n   const exc=run.length===2&&selSet.has(run[0])&&!selSet.has(run[1])&&NIGHT.includes((JUL.find(x=>x[0]===run[0])||[])[2]);\n   cost+=exc?1:run.length;\n   i=j+1;}\n return {cost,pairs:cost-sel.length,marked:[...marked]};}\nfunction* combos(arr,k,start=0,acc=[]){\n if(acc.length){yield acc.slice();}\n if(acc.length===k)return;\n for(let i=start;i<arr.length;i++){acc.push(arr[i]);yield* combos(arr,k,i+1,acc);acc.pop();}}\n(function renderEdu(){\n const pick=eduPick();\n document.getElementById('edubox').innerHTML=EDUD.map(d=>{const a=eduAvail(d);const dw=DOW[(d-1)%7];\n   return `<div class=\"rk\"><span class=\"no\">${a.ok?(d===pick?'\u2705':'\u25cb'):'\u274c'}<\/span><span class=\"dn2\">7/${d}(${dw})<\/span>${d===pick?'<span class=\"score\" style=\"background:var(--accent);color:#fff\">\ucd94\ucc9c \ucc38\uc11d\uc77c<\/span>':''}<div class=\"why\">${a.why}<\/div><\/div>`;}).join('')\n  +(pick?'':'<div class=\"note\">\uc774\ubc88 \ub2ec\uc740 \ub450 \ub0a0 \ubaa8\ub450 \ub2e4\uc774\uc544\uc640 \uacb9\uccd0 \ucc38\uc11d \ubd88\uac00<\/div>');\n})();\nlet K=2,MODE='streak';\ndocument.getElementById('kSel').addEventListener('click',e=>{if(e.target.dataset.k){K=+e.target.dataset.k;\n document.querySelectorAll('#kSel button').forEach(b=>b.className=b.dataset.k==K?'on':'');}});\ndocument.getElementById('mSel').addEventListener('click',e=>{if(e.target.dataset.m){MODE=e.target.dataset.m;\n document.querySelectorAll('#mSel button').forEach(b=>b.className=b.dataset.m===MODE?'on':'');}});\nfunction miniCal(sel,F){\n let h='<div class=\"mini-cal\">';\n // 7/1 = \uc218\uc694\uc77c \u2192 \uc55e\uc5d0 \uc77c~\ud654 3\uce78 \uacf5\ubc31\n for(let i=0;i<3;i++)h+='<div class=\"mc\" style=\"background:transparent\"><\/div>';\n JUL.forEach(([d,t,dia])=>{\n   let cls='',lb='';\n   if(sel.includes(d)){cls='ann';lb='\uc5f0\ucc28';}\n   else if(t==='off'){cls='free';lb='\ud734\ubb34';}\n   else if(t==='stb'){cls=F[d]?'freed':'stb';lb=F[d]?'\ud574\ubc29':'\ube44\ubc88';}\n   else{cls='work';lb=dia==='03E05'?'E5':NM[dia]+'\ub2e4';}\n   const eb=EDUD.includes(d)?' edub':'';\n   h+=`<div class=\"mc ${cls}${eb}\"><span class=\"d2\">${d}<\/span><span>${lb}<\/span><\/div>`;});\n return h+'<\/div>';}\nfunction run(){\n const results=[];\n for(const c of combos(CAND,K)){\n   const {cost,pairs}=annCost(c);\n   if(cost>K)continue;\n   results.push({sel:c.slice(),cost,pairs,...evalSel(c,MODE)});}\n results.sort((a,b)=>b.score-a.score||a.cost-b.cost);\n const top=results.slice(0,3);\n const el=document.getElementById('res');\n el.innerHTML=top.map((r,i)=>{\n   const days=r.sel.map(d=>{const e=JUL.find(x=>x[0]===d);const dw=DOW[(d-1)%7];\n     return `<b>7/${d}(${dw})<\/b> ${NM[e[2]]}\ub2e4\uc774\uc544${NIGHT.includes(e[2])?'\ud83c\udf19':''}`;}).join(' \u00b7 ');\n   const best=r.st[0];const stTxt=r.st.filter(s=>s[1]-s[0]>=1).slice(0,3).map(s=>`7/${s[0]}~7/${s[1]} (${s[1]-s[0]+1}\uc77c)`).join(', ');\n   const freedStb=r.sel.filter(d=>NIGHT.includes(JUL.find(x=>x[0]===d)[2])).map(d=>d+1);\n   return `<div class=\"reco ${i===0?'best':''}\"><div class=\"rt3\">${i===0?'\ud83e\udd47 \ucd94\ucc9c 1\uc21c\uc704':i===1?'\ud83e\udd48 2\uc21c\uc704':'\ud83e\udd49 3\uc21c\uc704'}${i===0?'<span class=\"tagb\">BEST<\/span>':''}<\/div>\n    <div class=\"days\">\uc5f0\ucc28: ${days}<\/div>\n    <div class=\"why2\" style=\"margin-bottom:4px\">\ud83d\udcb3 \ucc28\uac10 <b>${r.cost}\uc77c<\/b> = \uc5f0\ucc28 ${r.sel.length}\uc77c${r.pairs?` + <span style=\"color:#b23b6a\">\ube44\ubc88\ub0a0 \ucc28\uac10 ${r.pairs}\uc77c \u26a0\ufe0f (\uc5f0\ucc28\uac00 \ube44\ubc88\uc744 \uc9c0\ub098 \uc774\uc5b4\uc9d0)<\/span>`:(r.sel.some(d=>NIGHT.includes(JUL.find(x=>x[0]===d)[2]))?` (\uc57c\uac04 \uc5f0\ucc28 \u2192 \ube44\ubc88 \ubb34\ub8cc)`:``)}<\/div>\n    <div class=\"why2\">\u2192 \ucd5c\uc7a5 \uc5f0\ud734 <b>${r.maxS}\uc77c<\/b>${stTxt?` (${stTxt})`:''}<br>\n    \u2192 \ud53c\ud558\ub294 \ub2e4\uc774\uc544 \ubd80\ub2f4\uc810\uc218 ${r.bad}\uc810 \u00b7 \u21a9\ufe0f ${r.sel.map(d=>`7/${d} ${prevLabel(d)}`).join(' / ')}${freedStb.length?`<br>\u2192 \ud83c\udf19 \uc57c\uac04 \uc5f0\ucc28\ub77c ${freedStb.map(d=>'7/'+d).join(', ')} \ube44\ubc88 \uc544\uce68 \uadfc\ubb34\ub3c4 \ud574\ubc29`:''}<\/div>\n    ${(()=>{const pk=eduPick();return pk&&r.F[pk]?`<div class=\"why2\" style=\"margin-top:4px\">\ud83d\udcda 7/${pk} \uc624\uc804 \uc18c\uc9d1\uad50\uc721(9~11\uc2dc) \ucc38\uc11d \ud544\uc694 \u2014 \uc5f0\ud734 \uc911\uc774\uc5b4\ub3c4 \ub2e4\ub140\uc640\uc57c \ud568<\/div>`:'';})()}\n    ${miniCal(r.sel,r.F)}<\/div>`;}).join('')+\n  `<div class=\"legend2\"><span style=\"--c:#e8623d\">\uc5f0\ucc28<\/span><span style=\"--c:#e7f0e9\">\ud734\ubb34<\/span><span style=\"--c:#cfe3d4\">\ube44\ubc88\ud574\ubc29<\/span><span style=\"--c:#efeaf6\">\ube44\ubc88<\/span><span style=\"--c:#eee7e2\">\uadfc\ubb34<\/span><span style=\"--c:#fff;box-shadow:inset 0 0 0 1.5px #c9902f\">\ud83d\udcda\uad50\uc721\uc77c<\/span><\/div>`+pairInfo(top,results);\n}\nfunction pairInfo(top,results){\n if(top.some(r=>r.pairs>0))return '';\n const pw=results.filter(r=>r.pairs>0).sort((a,b)=>b.score-a.score)[0];\n if(!pw)return '';\n const days=pw.sel.map(d=>`7/${d}`).join('+');\n return `<div class=\"note\" style=\"background:#faf6f1;border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-top:10px\">\u2139\ufe0f \ubd99\uc5ec\uc4f0\uae30(\ube44\ubc88 \uc720\ub8cc\ud654) \uc870\ud569\ub3c4 \uacc4\uc0b0\ub428 \u2014 \ucd5c\uc120\uc740 <b>${days}<\/b> = \uc5f0\ucc28 ${pw.sel.length}\uc77c + \ube44\ubc88 \ucc28\uac10 ${pw.pairs}\uc77c = <b>${pw.cost}\uc77c<\/b>. \uac19\uc740 \ucc28\uac10\uc73c\ub85c \uc704 \uc870\ud569\ub4e4\uc774 \ub354 \uc774\ub4dd\uc774\ub77c \ubc00\ub9bc.<\/div>`;}\nrun();\n<\/script><\/body><\/html>\n";
+function fitFrame(f){try{f.style.height=(f.contentWindow.document.body.scrollHeight+30)+'px';}catch(e){}}
+function showView(v){
+ var views={sched:'v-sched',dia:'v-dia',ann:'v-ann'},btns={sched:'tb-s',dia:'tb-d',ann:'tb-a'};
+ for(var k in views){document.getElementById(views[k]).style.display=(k===v?'block':'none');
+   document.getElementById(btns[k]).className=(k===v?'on':'');}
+ if(v==='dia'){var f=document.getElementById('diaframe');
+   if(!f.getAttribute('data-loaded')){f.setAttribute('data-loaded','1');
+     f.onload=function(){fitFrame(f);
+       try{var doc=f.contentWindow.document;doc.querySelectorAll('details.card').forEach(function(d){d.addEventListener('toggle',function(){setTimeout(function(){fitFrame(f);},50);});});}catch(e){}};
+     f.srcdoc=document.getElementById('dia-src').textContent;}}
+ if(v==='ann'){var a=document.getElementById('annframe');
+   if(!a.getAttribute('data-loaded')){a.setAttribute('data-loaded','1');
+     a.onload=function(){fitFrame(a);
+       try{var doc=a.contentWindow.document;
+         doc.addEventListener('click',function(){setTimeout(function(){fitFrame(a);},80);});
+       }catch(e){}};
+     a.srcdoc=ANN_SRC;}}
+ window.scrollTo(0,0);}
+</script><script>
+const RUN={"03001":[{"t":"H1944","s":[{"st":"마산","a":null,"d":"06:21","trk":"4","dr":"4L"},{"st":"진주","a":"06:55","d":null,"dr":"R","h":"3"}],"ry":3},{"t":"1944","s":[{"st":"진주","a":null,"d":"07:55","trk":"5","dr":"1R"},{"st":"함안","a":"08:19","d":"08:20","dr":"2L","h":"1"},{"st":"마산","a":"08:29","d":"08:31","dr":"5L"},{"st":"창원","a":"08:36","d":"08:37","dr":"6L"},{"st":"창원중앙","a":"08:45","d":"08:46:30","dr":"3L","h":"2"},{"st":"진례","a":"08:54","d":"08:55","u":1,"dr":"3L"},{"st":"진영","a":"08:59","d":"09:00:30","dr":"3L"},{"st":"밀양","a":"09:19","d":"09:20","dr":"2L","h":"3"},{"st":"상동","a":"09:27","d":"09:28:30","dr":"2L"},{"st":"청도","a":"09:37","d":"09:38:30","dr":"3L"},{"st":"경산","a":"09:54","d":"09:55:30","dr":"3L"},{"st":"동대구","a":"10:10","d":null,"dr":"1R"}],"ry":3},{"t":"1945","s":[{"st":"동대구","a":null,"d":"14:24","trk":"3","dr":"3L"},{"st":"경산","a":"14:34","d":"14:35","dr":"2L","h":"4"},{"st":"남성현","a":"14:45","d":"14:46","u":1,"trk":"부3","dr":"2L"},{"st":"청도","a":"14:52","d":"14:53:30","dr":"2L"},{"st":"상동","a":"15:02","d":"15:07:30","trk":"부","dr":"R","p":"KTX211","h":"3"},{"st":"밀양","a":"15:14","d":"15:15:30","dr":"3L"},{"st":"한림정","a":"15:31","d":"15:32","u":1,"dr":"6L"},{"st":"진영","a":"15:36","d":"15:37:30","dr":"2L","h":"2"},{"st":"창원중앙","a":"15:47","d":"15:48:30","dr":"2L"},{"st":"창원","a":"15:56","d":"15:57:30","dr":"5L"},{"st":"마산","a":"16:01","d":"16:03","dr":"4L","h":"1"}],"ry":4}],"03002":[{"t":"1962","s":[{"st":"마산","a":"08:03","d":"08:04:30","trk":"5","dr":"5L"},{"st":"창원","a":"08:09:30","d":"08:10:30","dr":"6L","h":"1"},{"st":"창원중앙","a":"08:18:30","d":"08:19:30","dr":"3L"},{"st":"진영","a":"08:29","d":"08:30","dr":"3L"},{"st":"한림정","a":"08:34:30","d":"08:35:30","u":1,"dr":"5L","h":"2"},{"st":"삼랑진","a":"08:44:30","d":"08:46","trk":"6","dr":"3R"},{"st":"원동","a":"08:54","d":"08:55","trk":"본","dr":"1R"},{"st":"물금","a":"09:02","d":"09:03","dr":"2L","h":"3"},{"st":"화명","a":"09:10","d":"09:11","trk":"부","dr":"1L"},{"st":"구포","a":"09:15","d":"09:16","dr":"3L"},{"st":"사상","a":"09:21","d":"09:22","trk":"본","dr":"4R"},{"st":"부전","a":"09:32","d":null,"dr":"10L"}],"ry":3},{"t":"1981","s":[{"st":"부전","a":null,"d":"11:17","trk":"9","dr":"9L"},{"st":"사상","a":"11:28","d":"11:29:30","dr":"2L","h":"2"},{"st":"구포","a":"11:34:30","d":"11:36","dr":"2L"},{"st":"화명","a":"11:40","d":"11:41:30","trk":"부","dr":"2L"},{"st":"물금","a":"11:48:30","d":"11:50","dr":"3L","h":"1"},{"st":"원동","a":"11:57","d":"11:58:30","trk":"본","dr":"3L"},{"st":"삼랑진","a":"12:05:30","d":"12:07","trk":"7","dr":"3R"},{"st":"한림정","a":"12:16:30","d":"12:17:30","u":1,"dr":"6L"},{"st":"진영","a":"12:22","d":"12:23","dr":"2L"},{"st":"창원중앙","a":"12:33","d":"12:34","dr":"2L"},{"st":"창원","a":"12:42","d":"12:43","dr":"5L"},{"st":"마산","a":"12:48","d":"12:49:30","dr":"4L"}],"ry":2},{"t":"1964","s":[{"st":"마산","a":"16:58","d":"16:59:30","trk":"5","dr":"5L"},{"st":"창원","a":"17:04:30","d":"17:06","dr":"6L","h":"1"},{"st":"창원중앙","a":"17:14","d":"17:15:30","dr":"3L"},{"st":"진영","a":"17:25","d":"17:26:30","dr":"3L"},{"st":"삼랑진","a":"17:38","d":"17:39","trk":"6","dr":"3R","h":"2"},{"st":"원동","a":"17:47","d":"17:48","trk":"본","dr":"1R"},{"st":"물금","a":"17:54:30","d":"17:55:30","dr":"2L"},{"st":"화명","a":"18:02:30","d":"18:03:30","trk":"부","dr":"1L","h":"3"},{"st":"구포","a":"18:07:30","d":"18:08:30","dr":"3L"},{"st":"사상","a":"18:13:30","d":"18:14:30","trk":"본","dr":"4R"},{"st":"부전","a":"18:24","d":null,"dr":"10L","h":"4"}],"ry":4},{"t":"1963","s":[{"st":"부전","a":null,"d":"18:53","trk":"9","dr":"9L"},{"st":"사상","a":"19:04","d":"19:05","dr":"2L","h":"3"},{"st":"구포","a":"19:10","d":"19:11","dr":"2L"},{"st":"화명","a":"19:15","d":"19:16","trk":"부","dr":"2L"},{"st":"물금","a":"19:23","d":"19:24","dr":"3L","h":"2"},{"st":"원동","a":"19:31","d":"19:32","trk":"본","dr":"3L"},{"st":"삼랑진","a":"19:39","d":"19:40","trk":"7","dr":"3R"},{"st":"한림정","a":"19:50","d":"19:51","u":1,"dr":"6L","h":"1"},{"st":"진영","a":"19:53:30","d":"19:56:30","dr":"2L"},{"st":"진례","a":"20:00:30","d":"20:01:30","u":1,"dr":"2L"},{"st":"창원중앙","a":"20:09:30","d":"20:10:30","dr":"2L"},{"st":"창원","a":"20:18:30","d":"20:19:30","dr":"5L"},{"st":"마산","a":"20:24:30","d":"20:26","dr":"4L"}],"ry":3}],"03003":[{"t":"1941","s":[{"st":"마산","a":"08:16:30","d":"08:18","trk":"4","dr":"4L"},{"st":"함안","a":"08:28:30","d":"08:29:30","dr":"3L","h":"3"},{"st":"진주","a":"08:51","d":null,"dr":"4R"}],"ry":3},{"t":"1946","s":[{"st":"진주","a":null,"d":"10:30","trk":"5","dr":"1R"},{"st":"반성","a":"10:39:30","d":"10:40:30","u":1,"dr":"3L","h":"1"},{"st":"군북","a":"10:49:30","d":"10:50:30","dr":"2L"},{"st":"함안","a":"10:56:30","d":"10:57:30","dr":"2L"},{"st":"중리","a":"11:04","d":"11:05","trk":"부","dr":"2L","h":"2"},{"st":"마산","a":"11:11:30","d":"11:13:30","dr":"5L"},{"st":"창원","a":"11:18:30","d":"11:19:30","dr":"6L"},{"st":"창원중앙","a":"11:28","d":"11:29","dr":"3L","h":"3"},{"st":"진례","a":"11:37:30","d":"11:38:30","u":1,"dr":"3L"},{"st":"진영","a":"11:43","d":"11:47:30","trk":"부","dr":"4R","p":"새마을1932"},{"st":"한림정","a":"11:53:30","d":"11:54:30","u":1,"dr":"5L"},{"st":"밀양","a":"12:10","d":"12:11:30","dr":"2L"},{"st":"상동","a":"12:19","d":"12:20:30","dr":"2L"},{"st":"청도","a":"12:30","d":"12:35","trk":"본\n부","dr":"3L/R","p":"KTX282 (금,토,일)"},{"st":"남성현","a":"12:43:30","d":"12:45","u":1,"trk":"부5","dr":"4R"},{"st":"경산","a":"12:55:30","d":"12:57","dr":"3L"},{"st":"동대구","a":"13:11:30","d":null,"dr":"1R"}],"ry":3},{"t":"1947","s":[{"st":"동대구","a":null,"d":"17:40","trk":"3","dr":"3L"},{"st":"경산","a":"17:50","d":"17:51","dr":"2L","h":"6"},{"st":"청도","a":"18:05","d":"18:06:30","dr":"2L"},{"st":"상동","a":"18:14:30","d":"18:15:30","dr":"1L"},{"st":"밀양","a":"18:22:30","d":"18:23:30","dr":"3L","h":"5"},{"st":"한림정","a":"18:39","d":"18:40","u":1,"dr":"6L"},{"st":"진영","a":"18:44:30","d":"18:45:30","dr":"2L"},{"st":"진례","a":"18:50:30","d":"18:51:30","u":1,"dr":"2L","h":"4","x":["1950"]},{"st":"창원중앙","a":"18:59","d":"19:00","dr":"2L"},{"st":"창원","a":"19:08","d":"19:09","dr":"5L"},{"st":"마산","a":"19:13","d":"19:14","dr":"4L","h":"3"}],"ry":6}],"03004":[{"t":"1943","s":[{"st":"마산","a":"12:04","d":"12:05:30","trk":"4","dr":"4L"},{"st":"함안","a":"12:16","d":"12:17","dr":"3L","h":"4"},{"st":"진주","a":"12:39","d":null,"dr":"1L"}],"ry":4},{"t":"1948","s":[{"st":"진주","a":null,"d":"14:05","trk":"5","dr":"1R"},{"st":"함안","a":"14:29","d":"14:30","dr":"2L","h":"1"},{"st":"마산","a":"14:41","d":"14:42","dr":"5L"},{"st":"창원","a":"14:47","d":"14:48","dr":"6L"},{"st":"창원중앙","a":"14:56","d":"14:57:30","dr":"3L","h":"2"},{"st":"진영","a":"15:07","d":"15:08:30","dr":"3L"},{"st":"한림정","a":"15:14","d":"15:19:30","u":1,"trk":"부","dr":"4R","p":"KTX214"},{"st":"밀양","a":"15:36","d":"15:37","dr":"2L","h":"3"},{"st":"상동","a":"15:44","d":"15:45:30","dr":"2L"},{"st":"청도","a":"15:54","d":"15:58:30","trk":"부","dr":"4R","p":"ITX1016"},{"st":"경산","a":"16:15","d":"16:17:30","dr":"3L","h":"4"},{"st":"동대구","a":"16:31","d":null,"dr":"3R"}],"ry":4},{"t":"1949","s":[{"st":"동대구","a":null,"d":"19:36","trk":"3","dr":"3L"},{"st":"경산","a":"19:46","d":"19:47","dr":"2L","h":"3"},{"st":"청도","a":"20:02","d":"20:03:30","dr":"2L"},{"st":"밀양","a":"20:17","d":"20:18:30","dr":"3L"},{"st":"한림정","a":"20:34","d":"20:35","u":1,"dr":"6L","h":"2"},{"st":"진영","a":"20:39","d":"20:40:30","dr":"2L"},{"st":"창원중앙","a":"20:51","d":"20:52","dr":"2L"},{"st":"창원","a":"21:00","d":"21:01","dr":"5L","h":"1"},{"st":"마산","a":"21:05","d":"21:06","dr":"4L"}],"ry":3}],"03005":[{"t":"1945","s":[{"st":"마산","a":"16:01","d":"16:03","trk":"4","dr":"4L"},{"st":"중리","a":"16:08","d":"16:09:30","trk":"부","dr":"1L","h":"4"},{"st":"군북","a":"16:21","d":"16:22","dr":"3L"},{"st":"반성","a":"16:32","d":"16:33","u":1,"dr":"2L"},{"st":"진주","a":"16:43","d":null,"dr":"4R","h":"3"}],"ry":4},{"t":"1950","s":[{"st":"진주","a":null,"d":"17:53","trk":"5","dr":"1R"},{"st":"함안","a":"18:17","d":"18:18","dr":"2L","h":"1"},{"st":"마산","a":"18:27","d":"18:29","dr":"5L"},{"st":"창원","a":"18:34","d":"18:35","dr":"6L"},{"st":"창원중앙","a":"18:43","d":"18:44:30","dr":"3L","h":"2"},{"st":"진례","a":"18:52","d":"18:53","u":1,"dr":"3L","x":["1947"]},{"st":"진영","a":"18:57","d":"18:58:30","dr":"3L"},{"st":"밀양","a":"19:17","d":"19:18:30","dr":"2L","h":"3"},{"st":"상동","a":"19:25","d":"19:26:30","dr":"2L"},{"st":"청도","a":"19:36","d":"19:40:30","trk":"부","dr":"4R","p":"KTX110"},{"st":"남성현","a":"19:49","d":"19:50","u":1,"trk":"부5","dr":"4R","h":"4"},{"st":"경산","a":"20:00","d":"20:02:30","dr":"3L"},{"st":"동대구","a":"20:17","d":null,"dr":"3R"}],"ry":4},{"t":"1951","s":[{"st":"동대구","a":null,"d":"21:28","trk":"3","dr":"3L"},{"st":"경산","a":"21:39","d":"21:43","trk":"본\n부","dr":"2L/1R","p":"KTX165 (금,토)","h":"4"},{"st":"청도","a":"21:59:30","d":"22:00:30","dr":"2L"},{"st":"상동","a":"22:08:30","d":"22:09:30","dr":"1L"},{"st":"밀양","a":"22:16:30","d":"22:17:30","dr":"3L","h":"3"},{"st":"진영","a":"22:35:30","d":"22:36:30","dr":"2L"},{"st":"진례","a":"22:41:30","d":"22:42:30","u":1,"dr":"2L"},{"st":"창원중앙","a":"22:50","d":"22:51","dr":"2L","h":"2"},{"st":"창원","a":"22:59","d":"23:00","dr":"5L"},{"st":"마산","a":"23:04","d":null,"dr":"4L"}],"ry":4}],"03006":[{"t":"1947","s":[{"st":"마산","a":"19:13","d":"19:14","trk":"4","dr":"4L"},{"st":"중리","a":"19:19:30","d":"19:20:30","trk":"부","dr":"1L","h":"6"},{"st":"함안","a":"19:27:30","d":"19:28:30","dr":"3L"},{"st":"군북","a":"19:34","d":"19:35","dr":"3L"},{"st":"반성","a":"19:45","d":"19:46","u":1,"dr":"3L","h":"5"},{"st":"진주","a":"19:56","d":null,"dr":"4R"}],"ry":6},{"t":"1952","s":[{"st":"진주","a":null,"d":"21:20","trk":"5","dr":"1R"},{"st":"반성","a":"21:31","d":"21:32","u":1,"dr":"3L","h":"1"},{"st":"군북","a":"21:42","d":"21:43","dr":"2L"},{"st":"함안","a":"21:50","d":"21:51","dr":"2L"},{"st":"중리","a":"21:57","d":"21:58","trk":"부","dr":"L","h":"2"},{"st":"마산","a":"22:03:30","d":"22:05","dr":"5L"},{"st":"창원","a":"22:10","d":"22:11","dr":"6L"},{"st":"창원중앙","a":"22:19:30","d":"22:20:30","dr":"3L","h":"3"},{"st":"진영","a":"22:30:30","d":"22:31:30","dr":"3L"},{"st":"밀양","a":"22:50","d":"22:51","dr":"2L"},{"st":"청도","a":"23:05:30","d":"23:07","dr":"3L","h":"4"},{"st":"경산","a":"23:23","d":"23:24:30","dr":"3L"},{"st":"동대구","a":"23:39","d":null,"dr":"1R"}],"ry":6},{"t":"1941","s":[{"st":"동대구","a":null,"d":"06:41","trk":"3","dr":"3L"},{"st":"경산","a":"06:51","d":"06:52","dr":"2L","h":"3"},{"st":"청도","a":"07:08:30","d":"07:12","trk":"부","dr":"R","p":"KTX201"},{"st":"상동","a":"07:21","d":"07:22","dr":"1L"},{"st":"밀양","a":"07:29","d":"07:30","dr":"L","h":"2"},{"st":"한림정","a":"07:45:30","d":"07:46:30","u":1,"dr":"6L"},{"st":"진영","a":"07:51","d":"07:52","dr":"L"},{"st":"창원중앙","a":"08:02:30","d":"08:03:30","dr":"2L","h":"1"},{"st":"창원","a":"08:11:30","d":"08:12:30","dr":"5L"},{"st":"마산","a":"08:16:30","d":"08:18","dr":"4L"}],"ry":3}],"03007":[{"t":"1982","s":[{"st":"마산","a":"18:51","d":"18:53","trk":"5","dr":"5L"},{"st":"창원","a":"18:58","d":"18:59:30","dr":"6L","h":"1"},{"st":"창원중앙","a":"19:07","d":"19:09","dr":"3L"},{"st":"진영","a":"19:18","d":"19:20","dr":"3L"},{"st":"한림정","a":"19:24","d":"19:26","u":1,"dr":"5L","h":"2"},{"st":"삼랑진","a":"19:35","d":"19:36:30","trk":"6","dr":"3R"},{"st":"원동","a":"19:45","d":"19:50:30","trk":"부","dr":"L","p":"KTX105"},{"st":"물금","a":"19:57","d":"19:58:30","dr":"2L"},{"st":"화명","a":"20:04","d":"20:05:30","trk":"부","dr":"1L"},{"st":"구포","a":"20:10","d":"20:11","dr":"3L"},{"st":"사상","a":"20:16","d":"20:17:30","trk":"본","dr":"4R"},{"st":"부전","a":"20:27","d":null,"dr":"10L"}],"ry":2},{"t":"1961","s":[{"st":"부전","a":null,"d":"06:12","trk":"11","dr":"11L"},{"st":"사상","a":"06:23","d":"06:24","dr":"2L","h":"3"},{"st":"구포","a":"06:29","d":"06:30","dr":"2L"},{"st":"화명","a":"06:34","d":"06:35","trk":"부","dr":"2L"},{"st":"물금","a":"06:43","d":"06:48","trk":"부","dr":"4R","p":"ITX1002","h":"2"},{"st":"원동","a":"06:55","d":"06:56:30","trk":"본","dr":"3L"},{"st":"삼랑진","a":"07:03","d":"07:05","trk":"7","dr":"3R"},{"st":"한림정","a":"07:15","d":"07:16:30","u":1,"dr":"6L","h":"1"},{"st":"진영","a":"07:21","d":"07:22:30","dr":"2L"},{"st":"창원중앙","a":"07:32","d":"07:34","dr":"2L"},{"st":"창원","a":"07:42","d":"07:43:30","dr":"5L"},{"st":"마산","a":"07:48","d":"07:50","dr":"4L"}],"ry":3}],"03008":[{"t":"1949","s":[{"st":"마산","a":"21:05","d":"21:06","trk":"4","dr":"4L"},{"st":"중리","a":"21:11:30","d":"21:12:30","trk":"부","dr":"L","h":"3"},{"st":"함안","a":"21:19:30","d":"21:20:30","dr":"3L"},{"st":"군북","a":"21:26","d":"21:27","dr":"3L"},{"st":"반성","a":"21:37","d":"21:38","u":1,"dr":"2L","h":"2"},{"st":"진주","a":"21:48","d":null,"dr":"4R"}],"ry":3},{"t":"1942","s":[{"st":"진주","a":null,"d":"06:41","trk":"5","dr":"1R"},{"st":"반성","a":"06:52","d":"06:53","u":1,"dr":"3L","h":"1"},{"st":"군북","a":"07:03","d":"07:04","dr":"2L"},{"st":"함안","a":"07:11","d":"07:12","dr":"2L"},{"st":"중리","a":"07:19","d":"07:20","trk":"부","dr":"2L","h":"2"},{"st":"마산","a":"07:25:30","d":"07:27","dr":"5L"},{"st":"창원","a":"07:32","d":"07:33","dr":"6L"},{"st":"창원중앙","a":"07:41:30","d":"07:42:30","dr":"3L","h":"3"},{"st":"진례","a":"07:51","d":"07:57","u":1,"trk":"부","dr":"4R","p":"SRT382"},{"st":"진영","a":"08:03","d":"08:04:30","dr":"3L"},{"st":"한림정","a":"08:10:30","d":"08:11:30","u":1,"dr":"5L","h":"4"},{"st":"밀양","a":"08:28","d":"08:29","dr":"2L"},{"st":"청도","a":"08:42:30","d":"08:43:30","dr":"3L"},{"st":"남성현","a":"08:50:30","d":"08:51:30","u":1,"trk":"부5","dr":"4R"},{"st":"경산","a":"09:01","d":"09:02","dr":"3L"},{"st":"동대구","a":"09:16","d":null,"dr":"3R"}],"ry":4},{"t":"1943","s":[{"st":"동대구","a":null,"d":"10:24","dr":"3L"},{"st":"경산","a":"10:34","d":"10:35","dr":"2L","h":"4"},{"st":"청도","a":"10:49:30","d":"10:51","dr":"2L"},{"st":"상동","a":"11:00","d":"11:05","trk":"부","dr":"1R","p":"ITX1005"},{"st":"밀양","a":"11:13","d":"11:14:30","dr":"3L","h":"3"},{"st":"한림정","a":"11:30","d":"11:31","u":1,"dr":"6L"},{"st":"진영","a":"11:35:30","d":"11:36:30","dr":"2L"},{"st":"진례","a":"11:41","d":"11:42","u":1,"dr":"2L","h":"2"},{"st":"창원중앙","a":"11:50","d":"11:51","dr":"2L"},{"st":"창원","a":"11:59","d":"12:00","dr":"5L"},{"st":"마산","a":"12:04","d":"12:05:30","dr":"4L","h":"1"}],"ry":4}],"03009":[{"t":"1961","s":[{"st":"마산","a":"07:48","d":"07:50","trk":"4","dr":"4L"},{"st":"중리","a":"07:56","d":"07:58","trk":"부1","dr":"1L","h":"3","x":["1962"]},{"st":"함안","a":"08:04","d":"08:06","trk":"3","dr":"3L"},{"st":"군북","a":"08:12","d":"08:13","trk":"2","dr":"3L"},{"st":"반성","a":"08:22","d":"08:27:30","u":1,"trk":"본2\n부1","dr":"L/1R","p":"KTX201","h":"2"},{"st":"진주","a":"08:37","d":"08:39","trk":"7","dr":"3L"},{"st":"완사","a":"08:48","d":"08:49","u":1,"trk":"1","dr":"1L"},{"st":"북천","a":"08:56","d":"08:57:30","u":1,"trk":"2","dr":"2L","h":"1"},{"st":"횡천","a":"09:04","d":"09:05:30","u":1,"trk":"2","dr":"2L"},{"st":"하동","a":"09:11","d":"09:12","trk":"3","dr":"3L"},{"st":"진상","a":"09:18","d":"09:19","u":1,"trk":"2","dr":"2L"},{"st":"광양","a":"09:28","d":"09:29:30","trk":"6","dr":"3L"},{"st":"순천","a":"09:39","d":null,"trk":"2","dr":"3L"}],"ry":3},{"t":"1964","s":[{"st":"순천","a":null,"d":"15:10","trk":"3","dr":"3R"},{"st":"광양","a":"15:18","d":"15:20","trk":"5","dr":"2L","h":"1"},{"st":"진상","a":"15:29","d":"15:31","u":1,"trk":"1","dr":"1L"},{"st":"하동","a":"15:37","d":"15:39","trk":"2","dr":"2L"},{"st":"횡천","a":"15:44","d":"15:46","u":1,"trk":"1","dr":"1L","h":"2"},{"st":"북천","a":"15:53","d":"15:54:30","u":1,"trk":"3","dr":"3L"},{"st":"완사","a":"16:02","d":"16:03:30","u":1,"trk":"2","dr":"2L"},{"st":"진주","a":"16:13","d":"16:14:30","trk":"5","dr":"1R","h":"3"},{"st":"반성","a":"16:24","d":"16:25:30","u":1,"trk":"3","dr":"3L"},{"st":"군북","a":"16:34","d":"16:36","trk":"3","dr":"2L"},{"st":"함안","a":"16:42","d":"16:43:30","trk":"2","dr":"2L"},{"st":"중리","a":"16:50","d":"16:51:30","trk":"부4","dr":"2L"},{"st":"마산","a":"16:58","d":"16:59:30","trk":"5","dr":"5L"}],"ry":3}],"03010":[{"t":"1981","s":[{"st":"마산","a":"12:48","d":"12:49:30","trk":"4","dr":"4L"},{"st":"중리","a":"12:56","d":"12:57","trk":"부1","dr":"1L","h":"2"},{"st":"함안","a":"13:03:30","d":"13:04:30","trk":"3","dr":"3L"},{"st":"군북","a":"13:10:30","d":"13:11:30","trk":"2","dr":"3L"},{"st":"반성","a":"13:20:30","d":"13:21:30","u":1,"trk":"2","dr":"2L","h":"1"},{"st":"진주","a":"13:31","d":"13:32:30","trk":"7","dr":"3L"},{"st":"완사","a":"13:41","d":"13:42","u":1,"trk":"1","dr":"1L"},{"st":"북천","a":"13:49","d":"13:50","u":1,"trk":"2","dr":"2L"},{"st":"횡천","a":"13:56:30","d":"13:57:30","u":1,"trk":"2","dr":"2L"},{"st":"하동","a":"14:02:30","d":"14:03:30","trk":"3","dr":"3L"},{"st":"진상","a":"14:09:30","d":"14:10:30","u":1,"trk":"2","dr":"2L"},{"st":"광양","a":"14:19:30","d":"14:20:30","trk":"6","dr":"3L"},{"st":"순천","a":"14:29","d":"14:31","trk":"2","dr":"2R"}],"ry":2},{"t":"1982","s":[{"st":"순천","a":"17:01","d":"17:03","trk":"3","dr":"3R"},{"st":"광양","a":"17:11:30","d":"17:13","trk":"5","dr":"2L","h":"1"},{"st":"진상","a":"17:22:30","d":"17:24","u":1,"trk":"1","dr":"1L"},{"st":"하동","a":"17:30:30","d":"17:32","trk":"2","dr":"2L"},{"st":"횡천","a":"17:37:30","d":"17:39","u":1,"trk":"1","dr":"1L","h":"2"},{"st":"북천","a":"17:46","d":"17:47:30","u":1,"trk":"3","dr":"3L"},{"st":"완사","a":"17:55","d":"17:56:30","u":1,"trk":"2","dr":"2L"},{"st":"진주","a":"18:06","d":"18:08","trk":"6","dr":"2L"},{"st":"반성","a":"18:17:30","d":"18:19","u":1,"trk":"3","dr":"3L"},{"st":"군북","a":"18:28","d":"18:29:30","trk":"3","dr":"2L"},{"st":"함안","a":"18:35:30","d":"18:37","trk":"2","dr":"2L"},{"st":"중리","a":"18:43:30","d":"18:45","trk":"부4","dr":"2L"},{"st":"마산","a":"18:51:30","d":"18:53","trk":"5","dr":"5L"}],"ry":2}],"03011":[{"t":"1963","s":[{"st":"마산","a":"20:24","d":"20:26","trk":"4","dr":"4L"},{"st":"중리","a":"20:32","d":"20:33:30","trk":"부1","dr":"1L","h":"3"},{"st":"함안","a":"20:40","d":"20:41","trk":"3","dr":"3L"},{"st":"군북","a":"20:47","d":"20:48","trk":"2","dr":"3L"},{"st":"반성","a":"20:57","d":"20:58","u":1,"trk":"2","dr":"2L","h":"2"},{"st":"진주","a":"21:07","d":"21:08:30","trk":"7","dr":"3L"},{"st":"완사","a":"21:17","d":"21:18","u":1,"trk":"1","dr":"1L"},{"st":"북천","a":"21:25","d":"21:26","u":1,"trk":"2","dr":"2L","h":"1"},{"st":"횡천","a":"21:32","d":"21:33:30","u":1,"trk":"2","dr":"2L"},{"st":"하동","a":"21:38","d":"21:39:30","trk":"3","dr":"3L"},{"st":"진상","a":"21:45","d":"21:46:30","u":1,"trk":"2","dr":"2L"},{"st":"광양","a":"21:55","d":"21:56:30","trk":"6","dr":"3L"},{"st":"순천","a":"22:05","d":null,"trk":"3","dr":"3L"}],"ry":3},{"t":"1962","s":[{"st":"순천","a":null,"d":"06:24","trk":"3","dr":"3R"},{"st":"광양","a":"06:32:30","d":"06:33:30","trk":"5","dr":"2L","h":"1"},{"st":"진상","a":"06:42:30","d":"06:43:30","u":1,"trk":"1","dr":"1L"},{"st":"하동","a":"06:49:30","d":"06:50:30","trk":"2","dr":"2L"},{"st":"횡천","a":"06:55:30","d":"06:56:30","u":1,"trk":"1","dr":"1L","h":"2"},{"st":"북천","a":"07:03","d":"07:04","u":1,"trk":"3","dr":"3L"},{"st":"완사","a":"07:11","d":"07:12","u":1,"trk":"2","dr":"2L"},{"st":"진주","a":"07:20:30","d":"07:21:30","trk":"6","dr":"2L","h":"3"},{"st":"반성","a":"07:31","d":"07:32","u":1,"trk":"3","dr":"3L"},{"st":"군북","a":"07:41","d":"07:42","trk":"3","dr":"2L"},{"st":"함안","a":"07:48","d":"07:49","trk":"2","dr":"2L"},{"st":"중리","a":"07:55:30","d":"07:56:30","trk":"부4","dr":"2L","x":["1961"]},{"st":"마산","a":"08:03","d":"08:04:30","trk":"5","dr":"5L"}],"ry":3}]};
+const SWAP={"03007":[{"t":"1961","dir":"out","o":"03009","time":"07:48"},{"t":"1982","dir":"in","o":"03010","time":"18:53"}],"03009":[{"t":"1961","dir":"in","o":"03007","time":"07:50"},{"t":"1964","dir":"out","o":"03002","time":"16:58"}],"03011":[{"t":"1962","dir":"out","o":"03002","time":"08:03"},{"t":"1963","dir":"in","o":"03002","time":"20:26"}],"03002":[{"t":"1962","dir":"in","o":"03011","time":"08:04"},{"t":"1981","dir":"out","o":"03010","time":"12:48"},{"t":"1964","dir":"in","o":"03009","time":"16:59"},{"t":"1963","dir":"out","o":"03011","time":"20:24"}],"03006":[{"t":"1941","dir":"out","o":"03003","time":"08:16"},{"t":"1947","dir":"in","o":"03003","time":"19:14"}],"03003":[{"t":"1941","dir":"in","o":"03006","time":"08:18"},{"t":"1947","dir":"out","o":"03006","time":"19:13"}],"03008":[{"t":"1943","dir":"out","o":"03004","time":"12:04"},{"t":"1949","dir":"in","o":"03004","time":"21:06"}],"03004":[{"t":"1943","dir":"in","o":"03008","time":"12:05"},{"t":"1949","dir":"out","o":"03008","time":"21:05"}],"03010":[{"t":"1981","dir":"in","o":"03002","time":"12:49"},{"t":"1982","dir":"out","o":"03007","time":"18:51"}],"03001":[{"t":"1945","dir":"out","o":"03005","time":"16:01"}],"03005":[{"t":"1945","dir":"in","o":"03001","time":"16:03"}]};
+const GO_WD=[["07:34", "07:48", "무", "1961"], ["07:54", "08:07", "KTX", ""], ["08:03", "08:16", "무", "1941"], ["08:40", "08:50", "KTX", "203"], ["11:20", "11:30", "KTX", "205"], ["11:51", "12:04", "무", "1943"], ["12:34", "12:48", "무", "1981"], ["13:07", "13:17", "KTX", ""], ["13:40", "13:50", "KTX", "4021"], ["13:51", "14:04", "기타", ""], ["15:39", "15:53", "KTX", ""], ["15:48", "16:01", "무", "1945"], ["16:12", "16:27", "새", "1931"], ["16:29", "16:39", "KTX", "225"], ["18:06", "18:19", "KTX", ""], ["19:00", "19:13", "무", "1947"], ["19:15", "19:25", "KTX", "215"], ["20:10", "20:24", "무", "1963"], ["20:52", "21:05", "무", "1949"], ["21:01", "21:11", "KTX", ""], ["22:51", "23:04", "무", "1951"], ["23:36", "23:50", "KTX", ""], ["23:59", "00:13", "새", "1113"]];
+const GO_WE=[["07:34", "07:48", "무", "1961"], ["07:54", "08:07", "KTX", ""], ["08:03", "08:16", "무", "1941"], ["08:40", "08:50", "KTX", "203"], ["09:38", "09:50", "KTX", ""], ["11:20", "11:30", "KTX", "205"], ["11:51", "12:04", "무", "1943"], ["12:23", "12:33", "KTX", ""], ["12:34", "12:48", "무", "1981"], ["13:07", "13:17", "KTX", ""], ["13:40", "13:50", "KTX", "4021"], ["13:51", "14:04", "기타", ""], ["15:39", "15:53", "KTX", ""], ["15:48", "16:01", "무", "1945"], ["16:12", "16:27", "새", "1931"], ["16:29", "16:39", "KTX", "225"], ["17:25", "17:35", "KTX", "287"], ["18:01", "18:15", "KTX", ""], ["18:09", "18:22", "KTX", ""], ["19:00", "19:13", "무", "1947"], ["19:15", "19:25", "KTX", "215"], ["20:10", "20:24", "무", "1963"], ["20:52", "21:05", "무", "1949"], ["21:01", "21:11", "KTX", ""], ["22:51", "23:04", "무", "1951"], ["23:36", "23:50", "KTX", ""], ["23:59", "00:13", "새", "1113"]];
+const BACK_WD=[["04:59", "05:11", "KTX", ""], ["06:35", "06:48", "KTX", ""], ["07:27", "07:41", "무", "1942"], ["08:04", "08:18", "무", "1962"], ["08:31", "08:45", "무", "1944"], ["08:53", "09:08", "기타", ""], ["09:21", "09:32", "KTX", ""], ["10:25", "10:38", "KTX", ""], ["11:13", "11:28", "무", "1946"], ["11:22", "11:36", "KTX", ""], ["12:42", "12:52", "KTX", ""], ["13:17", "13:30", "KTX", ""], ["14:42", "14:56", "무", "1948"], ["14:55", "15:06", "KTX", ""], ["16:08", "16:21", "KTX", ""], ["16:18", "16:32", "기타", ""], ["16:40", "16:53", "KTX", ""], ["16:59", "17:14", "무", "1964"], ["18:01", "18:12", "KTX", ""], ["18:29", "18:43", "무", "1950"], ["18:53", "19:07", "무", "1982"], ["19:35", "19:45", "KTX", ""], ["21:08", "21:18", "KTX", ""], ["22:05", "22:19", "무", "1952"]];
+const BACK_WE=[["04:59", "05:11", "KTX", ""], ["06:35", "06:48", "KTX", ""], ["07:27", "07:41", "무", "1942"], ["08:04", "08:18", "무", "1962"], ["08:31", "08:45", "무", "1944"], ["08:53", "09:08", "기타", ""], ["09:21", "09:32", "KTX", ""], ["10:25", "10:38", "KTX", ""], ["11:13", "11:28", "무", "1946"], ["11:22", "11:36", "KTX", ""], ["11:44", "11:55", "KTX", ""], ["12:42", "12:52", "KTX", ""], ["13:17", "13:30", "KTX", ""], ["14:42", "14:56", "무", "1948"], ["14:55", "15:06", "KTX", ""], ["15:48", "15:58", "KTX", ""], ["16:08", "16:21", "KTX", ""], ["16:18", "16:32", "기타", ""], ["16:40", "16:53", "KTX", ""], ["16:59", "17:14", "무", "1964"], ["18:01", "18:12", "KTX", ""], ["18:18", "18:28", "KTX", ""], ["18:29", "18:43", "무", "1950"], ["18:53", "19:07", "무", "1982"], ["19:18", "19:29", "KTX", ""], ["19:38", "19:48", "KTX", ""], ["20:30", "20:41", "KTX", ""], ["21:08", "21:18", "KTX", ""], ["22:05", "22:19", "무", "1952"]];
+
+const SCHED_7=[
+ {d:1,dow:3,type:'day',dia:'03E05'},{d:2,dow:4,type:'night',dia:'03006'},{d:3,dow:5,type:'standby',dia:'03006'},
+ {d:4,dow:6,type:'day',dia:'03002'},{d:5,dow:0,type:'off'},{d:6,dow:1,type:'off'},
+ {d:7,dow:2,type:'day',dia:'03004'},{d:8,dow:3,type:'night',dia:'03008'},{d:9,dow:4,type:'standby',dia:'03008'},
+ {d:10,dow:5,type:'day',dia:'03009'},{d:11,dow:6,type:'off'},{d:12,dow:0,type:'off'},
+ {d:13,dow:1,type:'day',dia:'03010'},{d:14,dow:2,type:'night',dia:'03011'},{d:15,dow:3,type:'standby',dia:'03011'},
+ {d:16,dow:4,type:'day',dia:'03003'},{d:17,dow:5,type:'off'},{d:18,dow:6,type:'off'},
+ {d:19,dow:0,type:'day',dia:'03004'},{d:20,dow:1,type:'night',dia:'03006'},{d:21,dow:2,type:'standby',dia:'03006'},
+ {d:22,dow:3,type:'day',dia:'03001'},{d:23,dow:4,type:'off'},{d:24,dow:5,type:'off'},
+ {d:25,dow:6,type:'day',dia:'03005'},{d:26,dow:0,type:'night',dia:'03007'},{d:27,dow:1,type:'standby',dia:'03007'},
+ {d:28,dow:2,type:'day',dia:'03009'},{d:29,dow:3,type:'off'},{d:30,dow:4,type:'off'},{d:31,dow:5,type:'day',dia:'03003'}];
+
+const DIA={
+ '03E05':{route:'진주·동대구',ov:false,cm:'13:23',tg:'23:34',arr:'23:04',ref:'03005',edu:true,go:{leave:'12:14',cwc:'12:34',g:'무',no:'1981',arr:'12:49',slack:34}},
+ '03001':{route:'진주·동대구',ov:false,cm:'05:51',tg:'16:31',arr:'16:01',go:null,gn:'첫차보다 출무 이름'},
+ '03002':{route:'부전 2왕복',ov:false,cm:'07:24',tg:'20:54',arr:'20:24',go:null,gn:'첫차 여유 부족'},
+ '03003':{route:'진주·동대구',ov:false,cm:'07:38',tg:'19:43',arr:'19:13',go:{leave:'06:36',cwc:'06:56',g:'무',no:'1962',arr:'07:12',slack:26}},
+ '03004':{route:'진주·동대구',ov:false,cm:'11:25',tg:'21:35',arr:'21:05',go:{leave:'08:20',cwc:'08:40',g:'KTX',no:'203',arr:'08:52',slack:153}},
+ '03005':{route:'진주·동대구',ov:false,cm:'14:23',tg:'23:34',arr:'23:04',go:{leave:'13:20',cwc:'13:40',g:'KTX',no:'4021',arr:'13:52',slack:31}},
+ '03006':{route:'진주·동대구',ov:true,cm:'18:34',tg:'08:46',arr:'08:16',go:{leave:'17:19',cwc:'17:39',g:'무',no:'1982',arr:'17:56',slack:38}},
+ '03007':{route:'부전',ov:true,cm:'18:13',tg:'08:18',arr:'07:48',go:{leave:'17:05',cwc:'17:25',g:'KTX',no:'287',arr:'17:35',slack:38}},
+ '03008':{route:'진주·동대구',ov:true,cm:'20:26',tg:'12:34',arr:'12:04',go:{leave:'18:55',cwc:'19:15',g:'KTX',no:'215',arr:'19:25',slack:61}},
+ '03009':{route:'순천',ov:false,cm:'07:10',tg:'17:28',arr:'16:58',go:null,gn:'첫차보다 출무 이름'},
+ '03010':{route:'순천',ov:false,cm:'12:09',tg:'20:09',arr:'18:51',go:{leave:'11:00',cwc:'11:20',g:'KTX',no:'205',arr:'11:32',slack:37}},
+ '03011':{route:'순천',ov:true,cm:'19:46',tg:'08:33',arr:'08:03',go:{leave:'18:55',cwc:'19:15',g:'KTX',no:'215',arr:'19:25',slack:21}},
+ '03E02':{route:'부전 1왕복+교육',ov:false,cm:'07:24',tg:'16:30',arr:'16:30',ref:'03002',edu2:true,go:null,gn:'첫차 여유 부족'},
+};
+
+/* 다이아별 근무시간(시간)·운행거리(거리) — 4~6월 실적표 기준. 03005는 추정(03E05 동일 노선) */
+const DIAINFO={
+ '03001':{hr:'9:40',km:265.9},'03002':{hr:'12:00',km:342.4},'03003':{hr:'11:05',km:315.2},
+ '03004':{hr:'9:10',km:315.2},'03005':{hr:'8:11',km:315.2},'03006':{hr:'12:00',km:315.2},
+ '03007':{hr:'12:00',km:171.2},'03008':{hr:'12:00',km:315.2},'03009':{hr:'9:18',km:228.8},
+ '03010':{hr:'7:00',km:228.8},'03011':{hr:'11:47',km:228.8},'03E05':{hr:'9:11',km:315.2},'03E02':{hr:'8:06',km:171.2}};
+function mkSched(fd,defs){return defs.map((x,i)=>{const d=i+1,dow=(fd+i)%7;
+  if(x==='off')return{d,dow,type:'off'};
+  if(x==='edu')return{d,dow,type:'edu'};
+  if(x[0]==='~')return{d,dow,type:'standby',dia:x.slice(1)};
+  const night=DIA[x]&&DIA[x].ov;return{d,dow,type:night?'night':'day',dia:x};});}
+const SCHED_4=mkSched(3,['off','03010','03011','~03011','03003','off','off','03004','03006','~03006','03001','off','off','03E05','03007','~03007','03002','off','off','03010','03008','~03008','03009','off','off','03004','edu','edu','edu','edu']);
+const SCHED_5=mkSched(5,['off','03010','03008','~03008','03003','off','off','03004','03006','~03006','03001','off','off','03E05','03007','~03007','03002','off','off','03010','03008','~03008','03009','off','off','03009','03011','~03011','03003','off','off']);
+const SCHED_6=mkSched(1,['03010','03008','~03008','03001','off','off','03010','03011','~03011','03003','off','off','03004','03006','~03006','03001','off','off','03004','03007','~03007','03002','off','off','03E05','03008','~03008','03009','off','off']);
+const SCHED_11=[{d:1,dow:6,type:'pre'},{d:2,dow:0,type:'pre'},{d:3,dow:1,type:'pre'},{d:4,dow:2,type:'pre'},{d:5,dow:3,type:'pre'},{d:6,dow:4,type:'pre'},{d:7,dow:5,type:'pre'},{d:8,dow:6,type:'pre'},{d:9,dow:0,type:'pre'},{d:10,dow:1,type:'pre'},{d:11,dow:2,type:'pre'},{d:12,dow:3,type:'pre'},{d:13,dow:4,type:'pre'},{d:14,dow:5,type:'pre'},{d:15,dow:6,type:'pre'},{d:16,dow:0,type:'pre'},{d:17,dow:1,type:'pre'},{d:18,dow:2,type:'pre'},{d:19,dow:3,type:'pre'},{d:20,dow:4,type:'pre'},{d:21,dow:5,type:'pre'},{d:22,dow:6,type:'pre'},{d:23,dow:0,type:'pre'},{d:24,dow:1,type:'pre'},{d:25,dow:2,type:'pre'},{d:26,dow:3,type:'pre'},{d:27,dow:4,type:'pre'},{d:28,dow:5,type:'edu',note:'부산역교육'},{d:29,dow:6,type:'off'},{d:30,dow:0,type:'off'}];
+const SCHED_12=[{d:1,dow:1,type:'edu',note:'부산역교육'},{d:2,dow:2,type:'edu',note:'마산교육(첫 발령)'},{d:3,dow:3,type:'edu',note:'마산교육'},{d:4,dow:4,type:'edu',note:'마산교육'},{d:5,dow:5,type:'edu',note:'부산역교육'},{d:6,dow:6,type:'off'},{d:7,dow:0,type:'off'},{d:8,dow:1,type:'edu',note:'의왕인재개발원교육'},{d:9,dow:2,type:'edu',note:'의왕인재개발원교육'},{d:10,dow:3,type:'edu',note:'의왕인재개발원교육'},{d:11,dow:4,type:'edu',note:'부산역교육'},{d:12,dow:5,type:'day',dia:'03003',cm:'07:38',tg:'19:48',n1:'1901',n2:'1907'},{d:13,dow:6,type:'off'},{d:14,dow:0,type:'off'},{d:15,dow:1,type:'edu',note:'부산역교육'},{d:16,dow:2,type:'edu',note:'의왕인재개발원교육'},{d:17,dow:3,type:'edu',note:'의왕인재개발원교육'},{d:18,dow:4,type:'night',dia:'03008',cm:'18:13',tg:'08:18',n1:'1952',n2:'1941'},{d:19,dow:5,type:'standby',dia:'03008',cm:'18:13',tg:'08:18',n1:'1952',n2:'1941'},{d:20,dow:6,type:'off'},{d:21,dow:0,type:'off'},{d:22,dow:1,type:'edu',note:'부산역교육'},{d:23,dow:2,type:'edu',note:'부산역교육'},{d:24,dow:3,type:'edu',note:'부산역교육'},{d:25,dow:4,type:'off'},{d:26,dow:5,type:'off'},{d:27,dow:6,type:'off'},{d:28,dow:0,type:'off'},{d:29,dow:1,type:'day',dia:'03010',cm:'07:10',tg:'17:28',n1:'1941',n2:'1944'},{d:30,dow:2,type:'day',dia:'03001',cm:'05:51',tg:'16:31',n1:'1944',n2:'1945'},{d:31,dow:3,type:'day',dia:'03004',cm:'11:25',tg:'21:35',n1:'1943',n2:'1949'}];
+const SCHED_1=[{d:1,dow:4,type:'off'},{d:2,dow:5,type:'day',dia:'03009',cm:'07:10',tg:'17:28',n1:'1961',n2:'1964'},{d:3,dow:6,type:'off'},{d:4,dow:0,type:'off'},{d:5,dow:1,type:'day',dia:'03002',cm:'07:24',tg:'20:54',n1:'1962',n2:'1963'},{d:6,dow:2,type:'day',dia:'03003',cm:'07:38',tg:'19:43',n1:'1941',n2:'1947'},{d:7,dow:3,type:'day',dia:'03E02',cm:'07:24',tg:'16:30',n1:'1962',n2:'1981'},{d:8,dow:4,type:'off'},{d:9,dow:5,type:'night',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:10,dow:6,type:'standby',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:11,dow:0,type:'day',dia:'03009',cm:'07:10',tg:'17:28',n1:'1961',n2:'1964'},{d:12,dow:1,type:'off'},{d:13,dow:2,type:'off'},{d:14,dow:3,type:'day',dia:'03E05',cm:'13:23',tg:'23:34',n1:'1945',n2:'1951'},{d:15,dow:4,type:'night',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:16,dow:5,type:'standby',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:17,dow:6,type:'day',dia:'03003',cm:'07:38',tg:'19:43',n1:'1941',n2:'1947'},{d:18,dow:0,type:'off'},{d:19,dow:1,type:'off'},{d:20,dow:2,type:'day',dia:'03004',cm:'11:25',tg:'21:35',n1:'1943',n2:'1949'},{d:21,dow:3,type:'night',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:22,dow:4,type:'standby',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:23,dow:5,type:'day',dia:'03001',cm:'05:51',tg:'16:31',n1:'1944',n2:'1945'},{d:24,dow:6,type:'off'},{d:25,dow:0,type:'off'},{d:26,dow:1,type:'day',dia:'03005',cm:'14:23',tg:'23:34',n1:'1945',n2:'1951'},{d:27,dow:2,type:'night',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:28,dow:3,type:'standby',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:29,dow:4,type:'day',dia:'03002',cm:'07:24',tg:'20:54',n1:'1962',n2:'1963'},{d:30,dow:5,type:'off'},{d:31,dow:6,type:'off'}];
+const SCHED_2=[{d:1,dow:0,type:'day',dia:'03004',cm:'11:25',tg:'21:35',n1:'1943',n2:'1949'},{d:2,dow:1,type:'night',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:3,dow:2,type:'standby',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:4,dow:3,type:'day',dia:'03001',cm:'05:51',tg:'16:31',n1:'1944',n2:'1945'},{d:5,dow:4,type:'off'},{d:6,dow:5,type:'off'},{d:7,dow:6,type:'day',dia:'03E05',cm:'13:23',tg:'23:34',n1:'1945',n2:'1951'},{d:8,dow:0,type:'night',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:9,dow:1,type:'standby',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:10,dow:2,type:'day',dia:'03002',lv:'연차',cm:'07:24',tg:'20:54',n1:'1962',n2:'1963'},{d:11,dow:3,type:'off'},{d:12,dow:4,type:'off'},{d:13,dow:5,type:'day',dia:'03005',cm:'14:23',tg:'23:34',n1:'1945',n2:'1951'},{d:14,dow:6,type:'night',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:15,dow:0,type:'standby',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:16,dow:1,type:'day',dia:'03009',cm:'07:10',tg:'17:28',n1:'1961',n2:'1964'},{d:17,dow:2,type:'off'},{d:18,dow:3,type:'off'},{d:19,dow:4,type:'day',dia:'03010',cm:'12:09',tg:'20:09',n1:'1981',n2:'1982'},{d:20,dow:5,type:'night',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:21,dow:6,type:'standby',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:22,dow:0,type:'day',dia:'03003',cm:'07:38',tg:'19:43',n1:'1941',n2:'1947'},{d:23,dow:1,type:'off'},{d:24,dow:2,type:'off'},{d:25,dow:3,type:'day',dia:'03004',cm:'11:25',tg:'21:35',n1:'1943',n2:'1949'},{d:26,dow:4,type:'night',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:27,dow:5,type:'standby',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:28,dow:6,type:'day',dia:'03001',cm:'05:51',tg:'16:31',n1:'1944',n2:'1945'}];
+const SCHED_3=[{d:1,dow:0,type:'off'},{d:2,dow:1,type:'off'},{d:3,dow:2,type:'day',dia:'03E05',cm:'13:23',tg:'23:34',n1:'1945',n2:'1951'},{d:4,dow:3,type:'night',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:5,dow:4,type:'standby',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:6,dow:5,type:'day',dia:'03001',cm:'05:51',tg:'16:31',n1:'1944',n2:'1945'},{d:7,dow:6,type:'off'},{d:8,dow:0,type:'off'},{d:9,dow:1,type:'day',dia:'03005',cm:'14:23',tg:'23:34',n1:'1945',n2:'1951'},{d:10,dow:2,type:'night',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:11,dow:3,type:'standby',dia:'03007',cm:'18:13',tg:'08:18',n1:'1982',n2:'1961'},{d:12,dow:4,type:'day',dia:'03002',cm:'07:24',tg:'20:54',n1:'1962',n2:'1963'},{d:13,dow:5,type:'off'},{d:14,dow:6,type:'off'},{d:15,dow:0,type:'unknown',mk:'*'},{d:16,dow:1,type:'night',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:17,dow:2,type:'standby',dia:'03008',cm:'20:26',tg:'12:34',n1:'1949',n2:'1942'},{d:18,dow:3,type:'day',dia:'03009',cm:'07:10',tg:'17:28',n1:'1961',n2:'1964'},{d:19,dow:4,type:'off'},{d:20,dow:5,type:'off'},{d:21,dow:6,type:'day',dia:'03010',cm:'12:09',tg:'20:09',n1:'1981',n2:'1982'},{d:22,dow:0,type:'night',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:23,dow:1,type:'standby',dia:'03011',cm:'19:46',tg:'08:33',n1:'1963',n2:'1962'},{d:24,dow:2,type:'day',dia:'03003',cm:'07:38',tg:'19:43',n1:'1941',n2:'1947'},{d:25,dow:3,type:'off'},{d:26,dow:4,type:'off'},{d:27,dow:5,type:'day',dia:'03004',cm:'11:25',tg:'21:35',n1:'1943',n2:'1949'},{d:28,dow:6,type:'night',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:29,dow:0,type:'standby',dia:'03006',cm:'18:34',tg:'08:46',n1:'1947',n2:'1941'},{d:30,dow:1,type:'day',dia:'03002',cm:'07:24',tg:'20:54',n1:'1962',n2:'1963'},{d:31,dow:2,type:'off'}];
+const SCHEDS={11:SCHED_11,12:SCHED_12,1:SCHED_1,2:SCHED_2,3:SCHED_3,4:SCHED_4,5:SCHED_5,6:SCHED_6,7:SCHED_7};
+const MSEQ=[11,12,1,2,3,4,5,6,7];
+const _now=new Date();
+let curMonth=(_now.getFullYear()===2026&&_now.getMonth()>=3&&_now.getMonth()<=6)?_now.getMonth()+1:7;
+const mm=()=>String(curMonth).padStart(2,'0');
+const yr=()=>curMonth>=11?2025:2026;
+let SCHED=SCHEDS[curMonth];
+const hm2min=t=>{const p=(t||'0:0').split(':');return(+p[0])*60+(+p[1]);};
+const fmtHM=m=>`${Math.floor(m/60)}시간 ${m%60}분`;
+function monthPerf(){let days=0,mins=0,km=0,edu=0,miss=0;SCHED.forEach(s=>{
+  if(s.type==='edu'){edu++;mins+=480;return;}
+  if(s.type==='day'||s.type==='night'){
+    if(leaveOf(s,s.d)==='병가')return;
+    days++;
+    if(curMonth!==12&&DIAINFO[s.dia]){mins+=hm2min(DIAINFO[s.dia].hr);km+=DIAINFO[s.dia].km;}else miss++;}
+  });return{days,mins,km,edu,miss};}
+const perfLine=dia=>DIAINFO[dia]?`<div class="perf1"><span>🕘 근무 <b>${DIAINFO[dia].hr}</b></span><span>🚆 운행 <b>${DIAINFO[dia].km}</b>km</span></div>`:'';
+const MEET={"03001": [{"dia": "03002", "from": "16:01", "to": "16:31", "them": "휴식"}], "03002": [{"dia": "03001", "from": "16:01", "to": "16:31", "them": "복귀정리"}, {"dia": "03003", "from": "7:28", "to": "8:04", "them": "출무대기"}, {"dia": "03005", "from": "14:13", "to": "16:03", "them": "출무대기"}, {"dia": "03007", "from": "7:48", "to": "8:04", "them": "복귀정리"}, {"dia": "03008", "from": "20:24", "to": "20:54", "them": "출무대기"}, {"dia": "03009", "from": "7:14", "to": "7:50", "them": "출무대기"}], "03003": [{"dia": "03002", "from": "7:14", "to": "8:04", "them": "출무대기"}, {"dia": "03007", "from": "7:48", "to": "8:18", "them": "복귀정리"}, {"dia": "03009", "from": "7:12", "to": "7:50", "them": "출무대기"}, {"dia": "03010", "from": "19:13", "to": "19:43", "them": "복귀정리"}, {"dia": "03011", "from": "8:03", "to": "8:18", "them": "복귀정리"}, {"dia": "03011", "from": "19:36", "to": "19:43", "them": "출무대기"}], "03004": [{"dia": "03010", "from": "11:59", "to": "12:05", "them": "출무대기"}], "03005": [{"dia": "03002", "from": "13:52", "to": "16:03", "them": "휴식"}], "03006": [{"dia": "03007", "from": "18:03", "to": "18:53", "them": "출무대기"}, {"dia": "03007", "from": "8:16", "to": "8:18", "them": "복귀정리"}, {"dia": "03010", "from": "18:51", "to": "19:14", "them": "복귀정리"}, {"dia": "03011", "from": "8:16", "to": "8:33", "them": "복귀정리"}], "03007": [{"dia": "03002", "from": "7:48", "to": "8:04", "them": "출무대기"}, {"dia": "03003", "from": "7:48", "to": "8:18", "them": "출무대기"}, {"dia": "03006", "from": "18:24", "to": "18:53", "them": "출무대기"}, {"dia": "03006", "from": "8:16", "to": "8:18", "them": "복귀정리"}, {"dia": "03011", "from": "8:03", "to": "8:18", "them": "복귀정리"}], "03008": [{"dia": "03002", "from": "20:24", "to": "20:54", "them": "복귀정리"}, {"dia": "03003", "from": "19:25", "to": "19:43", "them": "복귀정리"}, {"dia": "03010", "from": "19:25", "to": "20:09", "them": "복귀정리"}, {"dia": "03010", "from": "12:04", "to": "12:34", "them": "출무대기"}, {"dia": "03011", "from": "19:36", "to": "20:26", "them": "출무대기"}], "03009": [{"dia": "03002", "from": "7:14", "to": "7:50", "them": "출무대기"}, {"dia": "03003", "from": "7:28", "to": "7:50", "them": "출무대기"}], "03010": [{"dia": "03003", "from": "19:13", "to": "19:43", "them": "복귀정리"}, {"dia": "03004", "from": "11:32", "to": "12:05", "them": "출무대기"}, {"dia": "03006", "from": "18:51", "to": "19:14", "them": "출무대기"}, {"dia": "03008", "from": "12:04", "to": "12:34", "them": "복귀정리"}, {"dia": "03011", "from": "19:36", "to": "20:09", "them": "출무대기"}], "03011": [{"dia": "03003", "from": "19:25", "to": "19:43", "them": "복귀정리"}, {"dia": "03003", "from": "8:03", "to": "8:18", "them": "출무대기"}, {"dia": "03006", "from": "8:16", "to": "8:33", "them": "복귀정리"}, {"dia": "03007", "from": "8:03", "to": "8:18", "them": "복귀정리"}, {"dia": "03008", "from": "20:16", "to": "20:26", "them": "출무대기"}, {"dia": "03010", "from": "19:25", "to": "20:09", "them": "복귀정리"}], "03E05": [{"dia": "03002", "from": "12:49", "to": "16:03", "them": "휴식"}]};
+const CHAIN={'H1944':'C','1944':'B','1945':'D','1962':'G','1981':'H','1964':'F','1963':'G','1941':'C','1946':'C','1947':'E','1943':'A','1948':'A','1949':'C','1950':'D','1951':'D','1952':'E','1961':'F','1982':'I','1942':'A'};
+const CHAIN_COL={A:'#c2542f',B:'#5a8763',C:'#3f5180',D:'#b07d2a',E:'#8a4b9c',F:'#2f8a8a',G:'#c25081',H:'#6f5e94',I:'#4a7d54'};
+const TEAM={A:'부소장님',B:'(남)박팀장님',C:'(여)박팀장님',D:'도팀장님'},ORD=['A','B','C','D'];
+const dayLead=d=>ORD[((3-d)%4+4)%4],nightLead=d=>dayLead(d-1);
+function leadFor(s){if(s.type==='off')return null;const isN=s.type==='night';const t=isN?nightLead(s.d):dayLead(s.d);return{team:t,name:TEAM[t],shift:isN?'야간':'주간'};}
+
+const TKO={day:'주간',night:'야간',standby:'비번',off:'휴무',edu:'일근',unknown:'미확인',pre:'입사 전'};
+const HIST=m=>m===11||m===12;
+const leaveOf=(s,d)=>(s&&s.lv)||getLeave(d);
+const DOW=['일','월','화','수','목','금','토'];
+const toMin=t=>{if(!t)return null;const p=t.split(':');return +p[0]*60+ +p[1];};
+const toHH=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
+const legRy=seg=>{let m=0;seg.s.forEach(o=>{const n=parseInt(o.h);if(!isNaN(n)&&n>m)m=n;});return m;};
+const gc=g=>g==='무'?'mu':g==='KTX'?'ktx':'etc';
+const gf=g=>g==='무'?'무궁화':g==='새'?'새마을':g==='기타'?'기타':g;
+const now=new Date();
+const TODAY=(now.getFullYear()===2026&&now.getMonth()===6)?now.getDate():1;
+let curDay=TODAY;
+
+/* store */
+const mem={};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return k in mem?mem[k]:null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+/* taxi (multi) */
+const tkey=d=>'taxi-'+yr()+'-'+mm()+'-'+d;
+const getTaxi=d=>{try{const v=JSON.parse(store.get(tkey(d))||'[]');return Array.isArray(v)?v:(v?[+v]:[]);}catch(e){return[]}};
+const setTaxi=(d,a)=>store.set(tkey(d),JSON.stringify(a));
+const won=n=>n.toLocaleString('ko-KR');
+function taxiTotal(){let s=0;for(let d=1;d<=31;d++)getTaxi(d).forEach(v=>{if(!isNaN(v))s+=+v});return s;}
+function addTaxi(d){const el=document.getElementById('taxin'+d);const v=parseInt((el.value||'').replace(/[^0-9]/g,''),10);if(v>0){const a=getTaxi(d);a.push(v);setTaxi(d,a);el.value='';render();refreshMarks();}}
+function delTaxi(d,i){const a=getTaxi(d);a.splice(i,1);setTaxi(d,a);render();refreshMarks();}
+const fkey=d=>'food-'+yr()+'-'+mm()+'-'+d;
+const getFood=d=>{try{const v=JSON.parse(store.get(fkey(d))||'[]');return Array.isArray(v)?v:(v?[+v]:[]);}catch(e){return[]}};
+const setFood=(d,a)=>store.set(fkey(d),JSON.stringify(a));
+function foodTotal(){let s=0;for(let d=1;d<=31;d++)getFood(d).forEach(v=>{if(!isNaN(v))s+=+v});return s;}
+function addFood(d){const el=document.getElementById('foodin'+d);const v=parseInt((el.value||'').replace(/[^0-9]/g,''),10);if(v>0){const a=getFood(d);a.push(v);setFood(d,a);el.value='';render();refreshMarks();}}
+function delFood(d,i){const a=getFood(d);a.splice(i,1);setFood(d,a);render();refreshMarks();}
+const getCycle=()=>{const v=+(store.get('cyclestart')||1);return(v>=1&&v<=28)?v:1;};
+function setCycle(s){store.set('cyclestart',String(s));render();refreshMarks();}
+function exportData(){const data={_app:'chaeun-schedule',_ver:1,_date:new Date().toISOString()};
+  const keys=['cyclestart','ttov'];for(let d=1;d<=31;d++){keys.push(tkey(d),fkey(d),lkey(d));}
+  keys.forEach(k=>{const v=store.get(k);if(v!=null)data[k]=v;});
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  const dt=new Date(),p=n=>String(n).padStart(2,'0');
+  a.href=url;a.download=`채은_승무앱_백업_${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}.json`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+function importData(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);
+    if(!o||o._app!=='chaeun-schedule'){alert('이 앱의 백업 파일이 아니에요.');input.value='';return;}
+    if(!confirm('지금 기기의 기록을 백업 내용으로 덮어쓸까요?')){input.value='';return;}
+    let n=0;Object.keys(o).forEach(k=>{if(k[0]==='_')return;store.set(k,o[k]);n++;});
+    render();refreshMarks();updateHdr();alert(`복원 완료 (${n}개 항목).`);
+  }catch(e){alert('파일을 읽을 수 없어요. JSON 백업 파일인지 확인해줘.');}input.value='';};
+  r.readAsText(f);}
+function cycleWindow(){const S=getCycle();const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let cs=new Date(today.getFullYear(),today.getMonth(),S);
+  if(cs>today)cs=new Date(today.getFullYear(),today.getMonth()-1,S);
+  return [cs,today];}
+function totalBlock(){const S=getCycle(),now=new Date();
+  const isRM=(now.getFullYear()===2026&&now.getMonth()+1===curMonth);
+  const w=cycleWindow(),cs=w[0],today=w[1];let tx=0,fd=0,label;
+  const fmt=x=>`${x.getMonth()+1}/${x.getDate()}`;
+  const nd=SCHED.length;
+  if(isRM){for(let d=1;d<=nd;d++){const dt=new Date(2026,curMonth-1,d);
+      if(dt>=cs&&dt<=today){getTaxi(d).forEach(v=>tx+=+v||0);getFood(d).forEach(v=>fd+=+v||0);}}
+    label=`${fmt(cs)}~${fmt(today)}`;}
+  else{for(let d=1;d<=nd;d++){getTaxi(d).forEach(v=>tx+=+v||0);getFood(d).forEach(v=>fd+=+v||0);}
+    label=`${curMonth}월 전체`;}
+  return `<div class="total">
+    <div class="ttop"><span class="tlab">💰 총 사용금액</span><b class="tval">₩${won(tx+fd)}</b></div>
+    <div class="tsub">🚕 ₩${won(tx)} · 🍽 ₩${won(fd)} <span class="trange">(${label})</span></div>
+    <div class="cyc"><span class="cyclab">정산 시작일</span>
+      <select class="cysel" onchange="setCycle(+this.value)">${Array.from({length:28},(_,i)=>i+1).map(n=>`<option value="${n}" ${S===n?'selected':''}>매월 ${n}일</option>`).join('')}</select></div>
+  </div>`;
+}
+/* leave */
+const lkey=d=>'leave-'+yr()+'-'+mm()+'-'+d;
+const getLeave=d=>store.get(lkey(d))||'';
+function setLeave(d,v){store.set(lkey(d),getLeave(d)===v?'':v);render();refreshMarks();updateHdr();}
+
+function refreshMarks(){const _gt=document.getElementById('grandTotal');if(_gt)_gt.textContent='₩'+won(taxiTotal()+foodTotal());
+  document.getElementById('taxiTotal').textContent='₩'+won(taxiTotal());
+  const ft=document.getElementById('foodTotal');if(ft)ft.textContent='₩'+won(foodTotal());
+  document.querySelectorAll('.cell').forEach(c=>{const d=+c.dataset.d;
+    let t=c.querySelector('.tx');const has=getTaxi(d).length>0;
+    if(has){if(!t){t=document.createElement('span');t.className='tx';t.textContent='🚕';c.appendChild(t);}}else if(t)t.remove();
+    let f=c.querySelector('.fd');const hf=getFood(d).length>0;
+    if(hf){if(!f){f=document.createElement('span');f.className='fd';f.textContent='🍽';c.appendChild(f);}}else if(f)f.remove();
+    const s=SCHED.find(x=>x.d===d);const lv=(s&&s.lv)||getLeave(d);c.classList.toggle('lvcell',!!lv);c.classList.toggle('sojcell',getSoj().includes(d));
+    let lb=c.querySelector('.lvm');
+    if(lv){if(!lb){lb=document.createElement('span');c.appendChild(lb);}lb.className='lvm '+(lv==='연차'?'ann':'sick');lb.textContent=lv==='연차'?'연':'병';}else if(lb)lb.remove();});}
+
+/* calendar */
+function buildCal(){const grid=document.getElementById('grid');grid.innerHTML='';
+  const now=new Date(),isRM=(now.getFullYear()===2026&&now.getMonth()+1===curMonth),td=now.getDate(),pastM=(yr()<now.getFullYear())||(yr()===now.getFullYear()&&curMonth<now.getMonth()+1);
+  for(let i=0;i<SCHED[0].dow;i++){const e=document.createElement('div');e.className='cell empty';grid.appendChild(e);}
+  SCHED.forEach(s=>{const c=document.createElement('div');c.className='cell '+s.type;c.dataset.d=s.d;c.tabIndex=0;c.setAttribute('role','button');
+    if(isRM){if(s.d<td)c.classList.add('past');if(s.d===td)c.classList.add('today');}else if(pastM)c.classList.add('past');
+    const cc=s.type==='off'?'·':s.type==='pre'?'':s.type==='standby'?'비번':s.type==='edu'?'일근':s.type==='unknown'?'?':s.dia;
+    c.innerHTML=`<span class="n">${s.d}</span><span class="c">${cc}</span>`;
+    if(s.lv){c.classList.add('lvcell');const lb=document.createElement('span');lb.className='lvm '+(s.lv==='연차'?'ann':'sick');lb.textContent=s.lv==='연차'?'연':'병';c.appendChild(lb);}
+    c.onclick=()=>{curDay=s.d;render();};c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();curDay=s.d;render();}};
+    grid.appendChild(c);});}
+function updateHdr(){const hm=document.getElementById('hdrMonth');if(hm)hm.innerHTML=`${curMonth}월 <span>${yr()}</span>`;
+  const i=MSEQ.indexOf(curMonth),pv=document.getElementById('mprev'),nx=document.getElementById('mnext');
+  if(pv)pv.disabled=(i<=0);if(nx)nx.disabled=(i>=MSEQ.length-1);
+  const p=document.getElementById('perf');if(p){const q=monthPerf();let t=`📊 <b>${curMonth}월 실적</b> · 승무 ${q.days}일`;
+    if(q.mins>0)t+=` · 총 ${fmtHM(q.mins)}`;if(q.km>0)t+=` · ${q.km.toFixed(1)}km`;if(q.miss>0)t+=` <span class="pmz">(일부 자료없음)</span>`;
+    if(q.edu>0)t+=` · 일근 ${q.edu}일`;p.innerHTML=t;}}
+function stepMonth(dir){const i=MSEQ.indexOf(curMonth),ni=i+dir;if(ni<0||ni>=MSEQ.length)return;setMonth(MSEQ[ni]);}
+function setMonth(m){if(m===curMonth)return;curMonth=m;SCHED=SCHEDS[m];curDay=1;buildCal();updateHdr();refreshMarks();render();}
+
+const pill=(g,no)=>`<span class="tn ${gc(g)}">${gf(g)}${no?' '+no:''}</span>`;
+const WE=dow=>dow===0||dow===5||dow===6;
+let ttEdit=false;
+const getTtov=()=>{try{const v=store.get('ttov');const o=v?JSON.parse(v):{};return o&&typeof o==='object'?o:{};}catch(e){return {};}};
+function setTtov(dir,dt,dep,g,no){const o=getTtov();o[dir+'|'+dt+'|'+dep]={g,no:(no||'').trim()};store.set('ttov',JSON.stringify(o));render();}
+function commitTt(el){const row=el.closest('.r');if(!row)return;setTtov(row.dataset.dir,row.dataset.dt,row.dataset.dep,row.querySelector('.esel').value,row.querySelector('.eno').value);}
+function toggleTtEdit(){ttEdit=!ttEdit;render();}
+const applyOv=(dir,dt,list)=>{const o=getTtov();return list.map(e=>{const v=o[dir+'|'+dt+'|'+e[0]];return v?[e[0],e[1],v.g,v.no]:e;});};
+const goList=dow=>applyOv('GO',WE(dow)?'WE':'WD',WE(dow)?GO_WE:GO_WD);
+const backList=dow=>applyOv('BACK',WE(dow)?'WE':'WD',WE(dow)?BACK_WE:BACK_WD);
+function nextBacks(fromT,off,dow){const lim=toMin(fromT)+(off||0);return backList(dow).filter(b=>toMin(b[0])>=lim).slice(0,3);}
+
+function meetList(s){const dia=s.dia;let list=MEET[dia]||[];
+  if(DIA[dia]&&DIA[dia].ov) list=s.type==='standby'?list.filter(m=>toMin(m.from)<780):list.filter(m=>toMin(m.from)>=780);
+  return list;}
+function masanEvents(s){const dia=DIA[s.dia],rd=(dia&&dia.ref)||s.dia,segs=RUN[rd]||[];
+  let legs=segs;
+  if(dia&&dia.ov) legs=s.type==='standby'?segs.filter(g=>+(g.s[0].d||g.s[0].a).split(':')[0]<13):segs.filter(g=>+(g.s[0].d||g.s[0].a).split(':')[0]>=13);
+  const ev=[];
+  legs.forEach(g=>{const st=g.s;st.forEach((o,idx)=>{if(o.st==='마산'){
+    if(idx===0)ev.push({k:'dep',t:toMin((o.d||o.a).slice(0,5))});
+    else if(idx===st.length-1)ev.push({k:'arr',t:toMin((o.a||o.d).slice(0,5))});
+  }});});
+  return ev;}
+// 내가 실제로 마산에 있는 구간 (출근 도착~첫출발 / 다리 사이 마산 대기 / 막도착~종료)
+function masanPresence(s){const dia=DIA[s.dia];if(!dia)return[];const D=s.d,B=D*1440,ev=masanEvents(s),out=[];
+  const inTime=dia.go?toMin(dia.go.arr):toMin(dia.cm);
+  const deps=ev.filter(e=>e.k==='dep').map(e=>e.t), arrs=ev.filter(e=>e.k==='arr').map(e=>e.t);
+  const sorted=ev.slice().sort((a,b)=>a.t-b.t), waits=[];
+  for(let i=0;i<sorted.length-1;i++) if(sorted[i].k==='arr'&&sorted[i+1].k==='dep'&&sorted[i+1].t-sorted[i].t>5) waits.push([sorted[i].t,sorted[i+1].t]);
+  if(s.type==='night'){const fd=deps.length?Math.min(...deps):toMin(dia.cm)+45;out.push({from:B+inTime,to:B+fd,kind:'출근'});
+    waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'휴식'}));}
+  else if(s.type==='standby'){waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'퇴근'}));
+    const la=arrs.length?Math.max(...arrs):toMin(dia.arr);out.push({from:B+la,to:B+toMin(dia.tg),kind:'퇴근'});}
+  else{const fd=deps.length?Math.min(...deps):toMin(dia.cm)+30,la=arrs.length?Math.max(...arrs):toMin(dia.tg)-30;
+    out.push({from:B+inTime,to:B+fd,kind:'출근'});
+    waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'휴식'}));
+    out.push({from:B+la,to:B+toMin(dia.tg),kind:'퇴근'});}
+  return out;}
+function masanLeads(s){const D=s.d,pres=masanPresence(s);if(!pres.length)return[];const map={};
+  for(const x of [D-1,D,D+1]){
+    const shifts=[[dayLead(x),'주간',x*1440+540,x*1440+1120,'09:00~18:40'],
+                  [nightLead(x),'야간',x*1440+1090,(x+1)*1440+550,x<D?'전날 18:10~09:10':'18:10~익일 09:10']];
+    for(const sh of shifts){const[code,shift,ls,le,range]=sh;
+      for(const p of pres){if(Math.max(p.from,ls)<Math.min(p.to,le)){const k=code+shift+ls;
+        if(!map[k])map[k]={code,shift,range,ord:ls,when:new Set()};map[k].when.add(p.kind);}}}
+  }
+  const res=Object.values(map).sort((a,b)=>a.ord-b.ord);
+  res.forEach(l=>{const w=l.when;l.wl=(w.has('출근')&&w.has('퇴근'))?'출근·퇴근':w.has('출근')?'출근':w.has('퇴근')?'퇴근':'근무중';
+    l.wc=(w.has('출근')&&w.has('퇴근'))?'both':w.has('출근')?'on':w.has('퇴근')?'off':'mid';});
+  return res;}
+function leadRow(s,dia){const leads=masanLeads(s),has=meetList(s).length;
+  if(!leads.length&&!has)return'';
+  const G={출근:[],근무중:[],퇴근:[]};
+  leads.forEach(l=>{if(l.when.has('출근'))G.출근.push(l);if(l.when.has('휴식'))G.근무중.push(l);if(l.when.has('퇴근'))G.퇴근.push(l);});
+  const wc={출근:'on',근무중:'mid',퇴근:'off'};
+  const grp=['출근','근무중','퇴근'].filter(k=>G[k].length).map(k=>
+    `<div class="lg"><span class="wh ${wc[k]}">${k}</span><div class="whos">${G[k].map(l=>`<span class="wp">${TEAM[l.code]}<em class="${l.shift==='야간'?'n':'d'}">${l.shift}</em></span>`).join('')}</div></div>`).join('');
+  return `<div class="leadwrap"><div class="leadrow">
+    <div class="lead">🧑‍✈️ 운용팀장</div>
+    ${has?`<button class="meettoggle" onclick="toggleMeet(this)">🏢 승무원 만남</button>`:''}
+  </div>${grp?`<div class="leadlist">${grp}</div>`:''}${meetPanel(s)}</div>`;
+}
+function toggleMeet(btn){const p=btn.parentElement.parentElement.querySelector('.meetpanel');const open=p.style.display!=='none';p.style.display=open?'none':'block';btn.classList.toggle('on',!open);}
+function meetRows(list){return list.slice().sort((a,b)=>toMin(a.from)-toMin(b.from)).map(m=>`<div class="mm"><span class="dd">${m.dia}</span><span class="w">${m.from}~${m.to}</span><span class="ctx">${m.them}</span></div>`).join('');}
+function meetPanel(s){const list=meetList(s);if(!list.length)return'';
+  return `<div class="meetpanel" style="display:none">${meetRows(list)}</div>`;
+}
+
+function computeGo(cm,dow){
+  const list=WE(dow)?GO_WE:GO_WD, cmM=toMin(cm), lim=cmM-10; let best=null;
+  for(const t of list){ if(t[2]==='기타')continue; const dp=toMin(t[0]),arr=toMin(t[1]); if(dp==null||arr==null||dp>arr)continue; if(arr<=lim&&(!best||arr>toMin(best[1])))best=t; }
+  if(best&&cmM-toMin(best[1])>120)return null;
+  return best;
+}
+function goBlock(dia,s){
+  const cm=(s&&s.cm)||dia.cm, dow=s?s.dow:0;
+  const g=cm?computeGo(cm,dow):null;
+  if(!g){const prep=toHH(toMin(cm)-110),lv2=toHH(toMin(cm)-55);
+    return `<div class="block"><div class="h">🚉 출근 <span style="color:var(--faint);font-weight:500">🚗 자차/택시</span></div><div class="trip">
+    <div class="line"><span class="tm">${prep}</span><span class="sub">준비 시작 (출무 1시간 50분 전)</span></div>
+    <div class="line"><span class="tm">${lv2}</span><span class="sub">집 출발 · 자차/택시 (출무 55분 전)</span></div>
+    <div class="line"><span class="tm">${cm}</span><span class="sub">출무 · 이 시간대 창원중앙→마산 열차 없음</span></div></div></div>`;}
+  const dep=g[0],arr=g[1],grade=g[2],no=g[3],slack=toMin(cm)-toMin(arr),leave=toHH(toMin(dep)-15),prep=toHH(toMin(dep)-75);
+  return `<div class="block"><div class="h">🚉 출근 <span style="color:var(--faint);font-weight:500">창원중앙 → 마산</span></div><div class="trip">
+    <div class="line"><span class="tm">${prep}</span><span class="sub">준비 시작 (1시간)</span></div>
+    <div class="line"><span class="tm">${leave}</span><span class="sub">집 출발 (역까지 ~15분)</span></div>
+    <div class="line">${pill(grade,no)}<span class="sub">${dep} → ${arr} · 출무 ${slack}분 전</span></div></div></div>`;
+}
+function backBlock(dia,dow){
+  const list=nextBacks(dia.arr,10,dow);
+  if(!list.length) return `<div class="block"><div class="h">🚉 퇴근</div><div class="self"><span>🚗</span><div><b>막차 끊김</b> · 자차/택시</div></div></div>`;
+  const f=list[0], rest=list.slice(1);
+  let s=`<div class="block"><div class="h">🚉 퇴근 · 마산도착 ${dia.arr}+10분~ <span style="color:var(--faint);font-weight:500">→창원중앙</span></div><div class="trip">
+    <div class="line">${pill(f[2],f[3])}<span class="sub">${f[0]} → ${f[1]}</span><span class="best">제일 빠름</span></div>`;
+  rest.forEach(b=>{s+=`<div class="line">${pill(b[2],b[3])}<span class="sub">${b[0]} → ${b[1]}</span></div>`;});
+  return s+`</div></div>`;
+}
+/* 상세 운행표 (출근·퇴근 사이) + 교대 per 열차 */
+function swapLine(rdia,train){const sw=(SWAP[rdia]||[]).filter(e=>e.t===train);
+  if(!sw.length)return'';
+  return sw.map(e=> e.dir==='in'
+    ? `<div class="swline in">🟢 마산에서 <b>${e.o}</b>한테 받아서 출발 <span>${e.time}</span></div>`
+    : `<div class="swline out">🔴 마산 도착 후 <b>${e.o}</b>에 넘김 <span>${e.time}</span></div>`).join('');
+}
+function consistSummary(segs){const ch=segs.map(s=>CHAIN[s.t]).filter(Boolean),uniq=[...new Set(ch)];
+  const rows=segs.map(s=>`${pill('무',s.t.replace('H',''))} ${CHAIN[s.t]?`<span class="chip" style="background:${CHAIN_COL[CHAIN[s.t]]}">${CHAIN[s.t]}</span>`:''}`).join(' <span style="color:var(--faint)">→</span> ');
+  const sum=uniq.length<=1?`🚋 <span class="sum">같은 조성 유지</span> (${uniq[0]||'-'}·${segs[0].ry||'?'}량)`:`🔀 <span class="sum">조성 ${uniq.length}종</span> — 색 바뀌면 다른 차량`;
+  return `<div class="consist">${sum}<div class="row">${rows}</div></div>`;
+}
+function legHtml(rd,seg,dow){
+  const ry=seg.ry||"", c=CHAIN[seg.t];
+  const nosec=t=>t?t.split(':').slice(0,2).join(':'):t;
+  const DOWc=['일','월','화','수','목','금','토'][dow];
+  const R=(v,on)=>on?`<span class="rd">${v}</span>`:v;
+  function cells(o){
+    let trk=o.trk||'·', dr=o.dr||'·', p=o.p||'·', red=false, pRed=false;
+    const m=(o.p||'').match(/^(.+?)\s*\(([가-힣,]+)\)$/);
+    if(m){
+      const nm=m[1].trim(), days=m[2].split(','), dodge=days.includes(DOWc);
+      const tk=(o.trk||'').split(/[\s\n]+/).filter(Boolean);
+      const dd=(o.dr||'').split('/'); let nonDr=dd[0]||'', dodgeDr=dd[1]||'';
+      if(dodgeDr&&!/^\d/.test(dodgeDr)){const lead=(nonDr.match(/^\d+/)||[''])[0];dodgeDr=lead+dodgeDr;}
+      red=true;
+      if(dodge){trk=tk[1]||tk[0];dr=dodgeDr||nonDr;p=nm;pRed=true;}
+      else{trk=tk[0]||trk;dr=nonDr||dr;p='·';}
+    }
+    return `<td>${R(trk,red)}</td><td>${R(dr,red)}</td><td>${R(p,pRed)}</td>`;
+  }
+  const rows=seg.s.map(o=>`<tr class="${o.st==='마산'?'ms':''}"><td>${o.st}${o.u?'<span class="u">무인</span>':''}${o.x?`<span class="xm">⇄${o.x.join('·')}</span>`:''}</td>${cells(o)}<td>${nosec(o.a)||'·'}</td><td class="dep">${o.d||'·'}</td></tr>`).join('');
+  return `<div class="leg">${swapLine(rd,seg.t)}
+    <div class="lh"><span class="g">#${seg.t}</span> · ${seg.s[0].st}→${seg.s[seg.s.length-1].st} ${c?`<span class="chip" style="background:${CHAIN_COL[c]}">조성 ${c}</span>`:''}${ry?`<span class="ry">${ry}량</span>`:''}</div>
+    <div class="rawtbl"><table><thead><tr><th>정차역</th><th>선</th><th>문</th><th>대피</th><th>도착</th><th>출발</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function runInline(s){
+  const dia=s.dia, rd=(DIA[dia]&&DIA[dia].ref)||dia; let segs=RUN[rd]; if(!segs) return '';
+  const edu2=DIA[dia]&&DIA[dia].edu2;
+  const note=rd!==dia?` <span style="color:var(--muted);font-weight:500">(${rd} 열차)</span>`:'';
+  let body;
+  if(edu2){segs=segs.slice(0,2);
+    body=`<div class="edu2note">🎓 부전 <b>첫 왕복 1회</b>만 운행 → 이후 사무실 교육 (${DIA[dia].tg} 퇴근)</div>${consistSummary(segs)}${segs.map(g=>legHtml(rd,g,s.dow)).join('')}`;
+  }else if(DIA[dia]&&DIA[dia].ov){
+    const morn=s.type==='standby';
+    const day=segs.filter(g=>morn?+(g.s[0].d||g.s[0].a).split(':')[0]<13:+(g.s[0].d||g.s[0].a).split(':')[0]>=13);
+    body=`${consistSummary(day)}${day.map(g=>legHtml(rd,g,s.dow)).join('')}`;
+  }else{
+    body=`${consistSummary(segs)}${segs.map(g=>legHtml(rd,g,s.dow)).join('')}`;
+  }
+  return `<details class="fold"><summary>📋 상세 운행표${note} <span class="cv">›</span></summary>
+    <div class="run"><div class="rnote">열차번호 위=마산 교대 · ⇄=교차 열차</div>${body}</div></details>`;
+}
+function taxiMulti(d){const a=getTaxi(d);
+  const items=a.map((v,i)=>`<div class="txitem">₩${won(v)}<button onclick="delTaxi(${d},${i})" aria-label="삭제">×</button></div>`).join('');
+  const dtot=a.reduce((s,v)=>s+(+v||0),0);
+  return `<div class="taxi"><div class="th">🚕 택시·자차비 ${dtot?`<b>₩${won(dtot)}</b>`:''}</div>
+    <div class="txlist">${items}</div>
+    <div class="txadd"><span>₩</span><input id="taxin${d}" type="number" inputmode="numeric" min="0" placeholder="금액" onkeydown="if(event.key==='Enter')addTaxi(${d})">
+      <button onclick="addTaxi(${d})">추가</button></div></div>`;
+}
+function foodMulti(d){const a=getFood(d);
+  const items=a.map((v,i)=>`<div class="txitem fdit">₩${won(v)}<button onclick="delFood(${d},${i})" aria-label="삭제">×</button></div>`).join('');
+  const dtot=a.reduce((s,v)=>s+(+v||0),0);
+  return `<div class="taxi food"><div class="th">🍽 식비 ${dtot?`<b>₩${won(dtot)}</b>`:''}</div>
+    <div class="txlist">${items}</div>
+    <div class="txadd"><span>₩</span><input id="foodin${d}" type="number" inputmode="numeric" min="0" placeholder="금액" onkeydown="if(event.key==='Enter')addFood(${d})">
+      <button onclick="addFood(${d})">추가</button></div></div>`;
+}
+/* ===== 소집교육 (월 1회, 2일 중 1일, 09:00~11:00) ===== */
+const SOJ_DEF={1:[15,16],2:[12,13],3:[12,13],4:[16,17],5:[14,15],6:[11,12],7:[16,17]};
+const sojKey=()=>'soj-'+yr()+'-'+mm();
+function getSoj(){try{const v=store.get(sojKey());if(v!=null&&v!=='')return JSON.parse(v);}catch(e){}
+  return (yr()===2026&&SOJ_DEF[curMonth])?SOJ_DEF[curMonth].slice():[];}
+function setSoj(a){store.set(sojKey(),JSON.stringify(a));refreshMarks();render();}
+function toggleSoj(d){const a=getSoj();const i=a.indexOf(d);if(i>=0)a.splice(i,1);else{a.push(d);a.sort((x,y)=>x-y);}setSoj(a);}
+function sojAvail(d){const s=SCHED.find(x=>x.d===d);if(!s)return{ok:true,why:''};
+  if(s.type==='off'||s.type==='pre')return{ok:true,why:'휴무 — 참석 가능 (쉬는 날이지만 가야 함)'};
+  if(s.type==='edu')return{ok:false,why:'일근(9~18시)과 겹침 → 참석 불가'};
+  if(s.type==='standby'){const p=SCHED.find(x=>x.d===d-1);const dia=p&&DIA[p.dia];const tgS=(p&&p.tg)||(dia&&dia.tg);const tg=tgS?toMin(tgS):720;
+    return tg>540?{ok:false,why:`비번 복귀(${tgS||'?'})가 9~11시와 겹침 → 참석 불가`}:{ok:true,why:`비번 — ${tgS} 복귀 후 참석 가능`};}
+  const dia=DIA[s.dia]||{};const cmS=s.cm||dia.cm,tgS=s.tg||dia.tg;if(!cmS)return{ok:true,why:''};
+  const cm=toMin(cmS),tg=tgS?toMin(tgS):cm+600;const night=!!dia.ov||(tgS&&toMin(tgS)<cm);
+  const ov=night?false:(cm<660&&tg>540);
+  return ov?{ok:false,why:`${s.dia}(${cmS}~${tgS})와 겹침 → 참석 불가`}:{ok:true,why:`출무 ${cmS} 전 참석 가능`};}
+function sojBlock(d){const on=getSoj().includes(d);
+  let banner='';
+  if(on){const a=sojAvail(d);banner=`<div class="sojb ${a.ok?'ok':'no'}">📚 소집교육 09:00~11:00 · ${a.ok?'✅':'❌'} ${a.why}</div>`;}
+  return banner+`<div class="leave"><span class="lvlab">소집교육</span><button class="lv soj ${on?'on':''}" onclick="toggleSoj(${d})">📚 ${on?'교육일 해제':'교육일 추가'}</button></div>`;}
+function leaveControl(d){const s=SCHED.find(x=>x.d===d);const c=(s&&s.lv)||getLeave(d);
+  return sojBlock(d)+`<div class="leave"><span class="lvlab">연차·병가</span>
+    <button class="lv ${c==='연차'?'on ann':''}" onclick="setLeave(${d},'연차')">🌴 연차</button>
+    <button class="lv ${c==='병가'?'on sick':''}" onclick="setLeave(${d},'병가')">🤒 병가</button></div>`;}
+function leaveBanner(d){const s=SCHED.find(x=>x.d===d);const c=(s&&s.lv)||getLeave(d);if(!c)return'';
+  const t=c==='연차'?'🌴 연차 · 근무로 인정':'🤒 병가 · 실적 제외';
+  return `<div class="lvbanner ${c==='연차'?'ann':'sick'}">${t}</div>`;}
+function timetable(s){
+  const OPTS=['무','KTX','새','기타'];
+  const we=WE(s.dow), dt=we?'WE':'WD', lbl=we?'금·토·일':'평일', go=goList(s.dow), back=backList(s.dow);
+  const erow=(dir,b)=>`<div class="r ed" data-dir="${dir}" data-dt="${dt}" data-dep="${b[0]}"><span class="tm">${b[0]}</span>`+
+    `<select class="esel" onchange="commitTt(this)">${OPTS.map(o=>`<option value="${o}" ${b[2]===o?'selected':''}>${gf(o)}</option>`).join('')}</select>`+
+    `<input class="eno" inputmode="numeric" placeholder="번호" value="${b[3]||''}" onchange="commitTt(this)"></div>`;
+  const row=(dir,b)=>ttEdit?erow(dir,b):`<div class="r"><span class="tm">${b[0]}</span>${pill(b[2],b[3])}</div>`;
+  const K='https://www.korail.com/ticket/search/list';
+  return `<details class="fold" ${ttEdit?'open':''}><summary>🚆 마산↔창원중앙 시간표 · ${lbl}<span class="cv">›</span></summary>
+    <div class="ttnote">코레일 공식 기준(2026.7) · <b>${lbl}</b> 시각표 · 시간은 정확, <b>열차 종류·번호는 직접 수정</b> 가능 · 편집은 <b>${lbl}</b>에만 저장됨
+      <button class="ttedit ${ttEdit?'on':''}" onclick="toggleTtEdit()">${ttEdit?'✓ 완료':'✏️ 편집'}</button></div>
+    <div class="tt"><div><h4>창원중앙 → 마산</h4>${go.map(b=>row('GO',b)).join('')}</div><div><h4>마산 → 창원중앙</h4>${back.map(b=>row('BACK',b)).join('')}</div></div></details>`;
+}
+
+function render(){
+  document.querySelectorAll('.cell').forEach(c=>c.classList.toggle('sel',+c.dataset.d===curDay));
+  const s=SCHED.find(x=>x.d===curDay), el=document.getElementById('detail');
+  const dstr=`${yr()!==2026?yr()+' ':''}${curMonth}월 ${curDay}일 (${DOW[s.dow]})`;
+  const lv=leaveOf(s,curDay);
+  if(s.type==='off'){el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">${lv||'휴무'}</div></div><span class="badge off">${lv||'휴무'}</span></div>
+    ${leaveBanner(curDay)}<div class="rest"><div class="e">${lv?'🏖️':'🌿'}</div><div class="t">${lv?lv+' 사용':'푹 쉬는 날'}</div></div>${leaveControl(curDay)}${taxiMulti(curDay)}${foodMulti(curDay)}</div>`;return;}
+  if(s.type==='pre'){el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">입사 전</div></div><span class="badge off">-</span></div>
+    <div class="rest"><div class="e">🌱</div><div class="t">입사 전<br><small style="color:var(--faint)">2025.11.28 입사</small></div></div></div>`;return;}
+  if(s.type==='edu'){const note=s.note||((curMonth===4&&curDay>=27)?'영주 신입교육':'교육·실습');
+    el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">일근<small>${note}</small></div></div><span class="badge edu">일근</span></div>
+    ${leaveBanner(curDay)}<div class="times"><div class="t"><div class="k">출근</div><div class="v">09:00</div></div><div class="arw">→</div><div class="t end"><div class="k">퇴근</div><div class="v">18:00</div></div></div>
+    <div class="perf1"><span>🏢 <b>${note}</b></span><span>🕘 8시간 (9-6, 점심 제외)</span></div>${leaveControl(curDay)}${taxiMulti(curDay)}${foodMulti(curDay)}</div>`;return;}
+  if(s.type==='unknown'){el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">미확인<small>표시 '${s.mk}'</small></div></div><span class="badge off">?</span></div>
+    ${leaveBanner(curDay)}<div class="rest"><div class="e">❓</div><div class="t">'${s.mk}' 표시 — 무슨 근무인지<br>알려주면 반영할게</div></div>${leaveControl(curDay)}${taxiMulti(curDay)}${foodMulti(curDay)}</div>`;return;}
+  if(HIST(curMonth)){const has=curMonth!==12&&DIAINFO[s.dia];
+    const perf=has?`<div class="perf1"><span>🕘 근무 <b>${DIAINFO[s.dia].hr}</b></span><span>🚆 운행 <b>${DIAINFO[s.dia].km}</b>km</span></div>`:`<div class="perf1 muted"><span>구 다이아 · 근무시간·거리 자료 없음</span></div>`;
+    const evar=s.dia==='03E02'?`<div class="self" style="margin-top:10px"><span>🎓</span><div>2다이아 왕복 1회 + 마지막 실습교육 후 퇴근</div></div>`:'';
+    const tlab=s.type==='standby'?`<div class="times"><div class="t end"><div class="k">복귀 (근무 종료)</div><div class="v">${s.tg}</div></div></div><div class="self" style="margin-top:10px"><span>🌙</span><div>전날 야간 외박 → <b>${s.tg}</b> 복귀</div></div>`
+      :`<div class="times"><div class="t"><div class="k">출근</div><div class="v">${s.cm}</div></div><div class="arw">→</div><div class="t end"><div class="k">퇴근${s.type==='night'?' (익일)':''}</div><div class="v">${s.tg}</div></div></div>${perf}`;
+    el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">${s.dia}</div></div><span class="badge ${s.type}">${TKO[s.type]}${s.type==='night'?' · 박사업':''}</span></div>
+    ${leaveBanner(curDay)}${tlab}
+    <div class="reps"><span class="rk">대표열번</span><span class="rv">${s.n1||'-'}</span><span class="rv">${s.n2||'-'}</span></div>${evar}
+    ${leaveControl(curDay)}${taxiMulti(curDay)}${foodMulti(curDay)}</div>`;return;}
+  if(!DIA[s.dia]){el.innerHTML=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div><div class="dia">${TKO[s.type]}<small>다이아 미확인</small></div></div><span class="badge ${s.type}">${TKO[s.type]}</span></div>
+    ${leaveBanner(curDay)}<div class="rest"><div class="e">❓</div><div class="t">이 날 다이아 자료가 없어</div></div>${leaveControl(curDay)}${taxiMulti(curDay)}${foodMulti(curDay)}</div>`;return;}
+  const dia=DIA[s.dia];
+  let h=`<div class="card"><div class="c-top"><div><div class="date">${dstr}</div>
+    <div class="dia">${s.dia}<small>${dia.route}</small></div></div>
+    <span class="badge ${s.type}">${TKO[s.type]}${dia.ov?' · 박사업':''}</span></div>`;
+  h+=leaveBanner(curDay);
+  if(s.type==='standby'){
+    const _tl=buildTL(s.dia),_m=_tl?tlSplit(_tl).day1:[];
+    const _c=_m.find(e=>e.k==='e'&&e.tag==='출무');const _ct=_c?tlFmt(_c.t).replace('익일 ',''):'';
+    h+=`<div class="times">${_ct?`<div class="t"><div class="k">아침 출무</div><div class="v">${_ct}</div></div><div class="arw">→</div>`:''}<div class="t end"><div class="k">복귀 (근무 종료)</div><div class="v">${dia.tg}</div></div></div>`;
+    h+=tlSection(s);
+    h+=`<details class="fold"><summary>👮 운용팀장 · 승무원 만남 <span class="cv">›</span></summary>${leadRow(s,dia)}</details>`;
+    h+=`<div class="self" style="margin-top:14px"><span>🌙</span><div>전날 야간 외박 → <b>${dia.tg}</b> 복귀</div></div>`;
+    h+=tlChips(s);
+    h+=runInline(s);
+    h+=backBlock(dia,s.dow);
+  }else{
+    h+=`<div class="times"><div class="t"><div class="k">출무</div><div class="v">${dia.cm}</div></div>
+      <div class="arw">→</div><div class="t end"><div class="k">종료${dia.ov?' (익일)':''}</div><div class="v">${dia.tg}</div></div></div>`;
+    h+=perfLine(s.dia);
+    h+=tlSection(s);
+    h+=`<details class="fold"><summary>👮 운용팀장 · 승무원 만남 <span class="cv">›</span></summary>${leadRow(s,dia)}</details>`;
+    h+=goBlock(dia,s);
+    h+=tlChips(s);
+    h+=runInline(s);
+    if(dia.ov) h+=`<div class="block"><div class="h">🚉 퇴근</div><div class="self"><span>🌙</span><div>익일 <b>${dia.tg}</b> 복귀 · 퇴근차 비번날</div></div></div>`;
+    else h+=backBlock(dia,s.dow);
+  }
+  h+=leaveControl(curDay)+taxiMulti(curDay)+foodMulti(curDay)+timetable(s)+`</div>`;
+  el.innerHTML=h;
+}
+/* ===== 휴게·출무 타임라인 (다이아 정리 이식) ===== */
+const T_ORIG={H1944:'마산','1944':'진주','1945':'동대구','1962':'순천','1981':'부전','1964':'순천','1963':'부전','1941':'동대구','1946':'진주','1947':'동대구','1943':'동대구','1948':'진주','1949':'동대구','1950':'진주','1951':'동대구','1952':'진주','1982':'목포','1961':'부전','1942':'진주'};
+const T_TERM={H1944:'진주','1944':'동대구','1945':'진주','1962':'부전','1981':'목포','1964':'부전','1963':'순천','1941':'진주','1946':'동대구','1947':'진주','1943':'진주','1948':'동대구','1949':'진주','1950':'동대구','1951':'마산','1952':'동대구','1982':'부전','1961':'순천','1942':'동대구'};
+const T_WALK={순천:17,부전:7,마산:0,동대구:0,진주:0};
+const T_HW={H1944:{dep:'06:05',arr:'06:30',sd:'06:21',sa:'06:55'}};
+const T_DIAS={'03001':1,'03002':2,'03003':3,'03004':4,'03005':5,'03006':6,'03007':7,'03008':8,'03009':9,'03010':10,'03011':11};
+const tlFmt=m=>{const d=Math.floor(m/1440);let x=((m%1440)+1440)%1440;return (d>0?'익일 ':'')+String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');};
+const tlDur=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+'시간 ':'')+mm+'분';};
+function tlLegs(dia){const rd=(DIA[dia]&&DIA[dia].ref)||dia;const segs=RUN[rd];if(!segs)return null;
+  return segs.map(l=>{const f=l.s[0],last=l.s[l.s.length-1];return {t:l.t,board:f.st,dep:(f.d||f.a),alight:last.st,arr:(last.a||last.d)};});}
+function buildTL(dia){
+  const D=DIA[dia];const legsRaw=tlLegs(dia);if(!D||!legsRaw||!T_DIAS[(D&&D.ref)||dia])return null;
+  const ov=!!D.ov;const ev=[];let last=toMin(D.cm);let dayBase=0;
+  const abs=clock=>{let c=dayBase*1440+clock;while(c<last-1){dayBase++;c+=1440;}return c;};
+  const add=(t,tag,place,note)=>{ev.push({k:'e',t,tag,place,note});last=Math.max(last,t);};
+  const blk=(tag,text)=>ev.push({k:'b',tag,text});
+  add(toMin(D.cm),'출무','마산 사업소','초기 출무');
+  const L=legsRaw.map(lg=>{const hwan=/^H/.test(lg.t);const mode=hwan?'입환':((lg.board===T_ORIG[lg.t])?'시발':'교대');return {...lg,hwan,mode,off:hwan?10:(mode==='시발'?25:10),_isTerm:(lg.alight===T_TERM[lg.t])&&!hwan};});
+  const pN=lg=>lg.hwan?`입환 승차·시발점검 없음·6시경·${lg.t}`:`${lg.mode==='시발'?'시발점검':'교대'}·${lg.t}·열차 ${lg.off}분 전`;
+  for(let i=0;i<L.length;i++){
+    const lg=L[i];const dep=abs(toMin((lg.hwan&&T_HW[lg.t])?T_HW[lg.t].dep:lg.dep));
+    if(i>0){
+      const prev=L[i-1];const prevArr=prev._arr;const X=lg.board;const walk=T_WALK[X]||0;
+      const gap=dep-prevArr;const crossed=Math.floor(dep/1440)>Math.floor(prevArr/1440);
+      const sochk=prev._isTerm?prevArr+15:prevArr;const platf=dep-lg.off;
+      if(crossed&&ov){
+        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분');
+        let restStart=sochk;
+        if(walk>0){const a=sochk+walk;add(a,'숙소도착',X,`도보 ${walk}분`);restStart=a;}
+        blk('외박',`🛏️ 외박(수면)·${X}·${tlDur((dep-115)-restStart)}`);
+        add(dep-115,'기상',X,'출무 1시간 전');
+        add(dep-55,'출무',X,`비번날 아침 출무 (숙소${walk>0?'':'(역내)'})`);
+        const ao=dia==='03007'?34:30,mpo=dia==='03007'?lg.off+4:lg.off;
+        if(walk>0)add(dep-ao-walk,'숙소출발',X,`음주 -${walk}분(도보)`);
+        add(dep-ao,'음주측정',X+'역',`출발 ${ao}분 전`);
+        add(dep-mpo,'승강홈',X,`${lg.mode==='시발'?'시발점검':'교대'}·${lg.t}·열차 ${mpo}분 전${dia==='03007'?'(4분 일찍)':''}`);
+      } else if(gap<lg.off+15){
+        if(prev._isTerm)add(prevArr,'종착순회',prev.alight,`빠른 회차·7분(~${tlFmt(prevArr+7)})`);
+        const qoff=lg.mode==='시발'?20:lg.off;
+        blk('회차',`🔄 빠른 회차·${X}·체류 ${tlDur(gap)}·종착순회7분+시발점검${qoff}분`);
+        add(dep-qoff,'승강홈',X,`${lg.mode==='시발'?'시발점검':'교대'}·${lg.t}·열차 ${qoff}분 전(단축)`);
+      } else {
+        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분');
+        const pureRest=platf-sochk;
+        const useLodge=walk>0?true:((X==='진주'||X==='동대구')?pureRest>=55:false);
+        let restStart=sochk,restEnd=platf;
+        if(walk>0){const a=sochk+walk;add(a,'숙소도착',X,`도보 ${walk}분`);restStart=a;restEnd=platf-walk;}
+        const lodgeLbl=useLodge?(walk>0?'숙소':'숙소(역내)'):'역 대기';
+        if(gap>=120){
+          const rechul=dep-60;
+          blk('휴게1',`☕ 휴게①·${X}·${tlDur(rechul-restStart)}`);
+          add(rechul,'재출무',X,`체류 2시간↑(${useLodge?'숙소':'역'})`);
+          blk('휴게2',`☕ 휴게②·${X}·${tlDur(restEnd-rechul)}`);
+          if(walk>0)add(restEnd,'숙소출발',X,`승강홈 -${walk}분(도보)`);
+          blk('총휴게',`Σ 총 휴게·${X}·${tlDur(restEnd-restStart)}`);
+        } else {
+          blk('휴게',`☕ 휴게·${X}·${tlDur(restEnd-restStart)} (${lodgeLbl})`);
+          if(walk>0)add(restEnd,'숙소출발',X,`승강홈 -${walk}분(도보)`);
+        }
+        add(platf,'승강홈',X,pN(lg));
+      }
+    } else {
+      add(lg.hwan?abs(360):dep-lg.off,'승강홈',lg.board,pN(lg));
+    }
+    add(dep,'출발',`${lg.board} → ${lg.alight}`,lg.hwan?`${lg.t} 회송·6:05경(정시 ${T_HW[lg.t].sd})`:`${lg.t} 운행`);
+    const arr=abs(toMin((lg.hwan&&T_HW[lg.t])?T_HW[lg.t].arr:lg.arr));lg._arr=arr;
+    const an=lg.hwan?`${lg.t}·회송(종착순회 없음)·6:30경(정시 ${T_HW[lg.t].sa})`:(lg._isTerm?`${lg.t}·종착역`:`${lg.t}·교대 넘김`);
+    add(arr,'종착',`${lg.alight} 도착`,an);
+  }
+  const lastLeg=L[L.length-1];
+  if(lastLeg._isTerm)add(lastLeg._arr+15,'종착순회',lastLeg.alight,'도착 +15분(종착역)');
+  add(abs(toMin(D.tg)),'종료','마산 사업소','근무 종료');
+  return ev;
+}
+function tlSplit(ev){let idx=ev.length;for(let i=0;i<ev.length;i++){if(ev[i].k==='e'&&ev[i].t>=1440){idx=i;break;}}return {day0:ev.slice(0,idx),day1:ev.slice(idx)};}
+const TL_C={출무:'c-chu',재출무:'c-chu',음주측정:'c-alc',기상:'c-wak',승강홈:'c-pla',출발:'c-run',종착:'c-arr',종착순회:'c-ins',숙소도착:'c-lod',숙소출발:'c-lod',종료:'c-end'};
+const TL_HL=['기상','재출무','승강홈'];
+function tlRows(evs){return evs.map(e=>{
+  if(e.k==='b'){const c=e.tag==='외박'?'stay':(e.tag==='총휴게'?'sum':(e.tag==='회차'?'turn':'rest'));return `<div class="tlblk ${c}">${e.text}</div>`;}
+  const hl=TL_HL.includes(e.tag)?' hl':'';
+  return `<div class="tlrow ${TL_C[e.tag]||''}${hl}"><span class="tltm">${tlFmt(e.t)}</span><span class="tlbd"><b class="tltg">${e.tag}</b><span class="tlpl">${e.place}</span>${e.note?`<span class="tlnt">${e.note}</span>`:''}</span></div>`;
+}).join('');}
+/* 카드용: 핵심 시각 칩 + 상세 타임라인 fold */
+const TL_RGB={run:'#3f5180',rest:'#5a8763',chk:'#c2542f',sleep:'#6f5e94'};
+const TL_EMO={run:'🚆',rest:'☕',chk:'📋',sleep:'🛏️'};
+const tlDur2=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+'시간 ':'')+(mm?mm+'분':(h?'':'0분'));};
+function tlSegsFrom(ev){
+  const out=[];
+  for(let i=0;i<ev.length;i++){
+    if(ev[i].k!=='e')continue;
+    let j=i+1;const mids=[];
+    while(j<ev.length&&ev[j].k!=='e'){mids.push(ev[j]);j++;}
+    if(j>=ev.length)break;
+    const a=ev[i],b=ev[j];if(b.t-a.t<=0)continue;
+    let type='chk',label=a.tag,place=a.place;
+    if(mids.some(x=>x.tag==='외박')){type='sleep';label='외박(수면)';place=b.place;}
+    else if(mids.some(x=>/휴게/.test(x.tag))){type='rest';label='휴게';place=b.place;}
+    else if(a.tag==='출발'){type='run';label=(a.note||'').split(' ·')[0].replace(' 운행','');place=a.place;}
+    out.push([a.t,b.t,type,label,place]);
+  }
+  return out;
+}
+function tlIsToday(){const rn=new Date();return rn.getFullYear()===yr()&&(rn.getMonth()+1)===curMonth&&rn.getDate()===curDay;}
+function tlNowAdj(isStandby){const rn=new Date();return rn.getHours()*60+rn.getMinutes()+(isStandby?1440:0);}
+function setTlView(v){store.set('tlview',v);render();}
+function tlBar(segs,nowAdj){
+  const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
+  let h=segs.map(s=>`<div class="tbseg" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]}"></div>`).join('');
+  let nm='';if(nowAdj!=null&&nowAdj>=a&&nowAdj<=b)nm=`<div class="tbnow" style="left:${px(nowAdj)}%"></div>`;
+  return `<div class="tbwrap"><div class="tbbar">${h}</div>${nm}<span class="tbt" style="left:0">${tlFmt(segs[0][0])}</span><span class="tbt" style="right:0">${tlFmt(segs[segs.length-1][1])}</span></div>`;
+}
+function tlStateHtml(segs,nowAdj,today){
+  if(!today||!segs||!segs.length)return '';
+  const c=segs.find(s=>nowAdj>=s[0]&&nowAdj<s[1]);
+  if(!c)return `<div class="tlstate"><span class="em">🏠</span><span class="bd2"><span class="k2">지금 (${tlFmt(nowAdj%1440)})</span><span class="v2">근무 시간 아님</span></span></div>`;
+  const pr=((nowAdj-c[0])/(c[1]-c[0])*100).toFixed(0),rm=c[1]-nowAdj;
+  return `<div class="tlstate"><span class="em">${TL_EMO[c[2]]}</span><span class="bd2"><span class="k2">지금 (${tlFmt(nowAdj%1440)})</span><span class="v2">${c[3]} · ${c[4]}</span><span class="n2">다음 단계까지 ${tlDur2(rm)}</span><span class="mini2"><i style="width:${pr}%"></i></span></span></div>`;
+}
+function tlViewCard(segs,nowAdj,today){
+  if(!today)return `<div class="tlmsg">📍 현재 위치는 오늘 날짜에서만 표시돼요</div>`+tlBar(segs,null);
+  return tlStateHtml(segs,nowAdj,today)+tlBar(segs,nowAdj);
+}
+function tlViewTimeline(ev,nowAdj,today,segs){
+  const es=ev.filter(e=>e.k==='e');
+  const endOf=t=>{const i=es.findIndex(x=>x.t===t.t&&x.tag===t.tag);return i<es.length-1?es[i+1].t:t.t+1;};
+  const top=tlStateHtml(segs,nowAdj,today);
+  let h='';
+  ev.forEach(e=>{
+    if(e.k==='b'){const c=e.tag==='외박'?'stay':(e.tag==='총휴게'?'sum':(e.tag==='회차'?'turn':'rest'));h+=`<div class="tlblk ${c}">${e.text}</div>`;return;}
+    const end=endOf(e);
+    const st=!today?'':(nowAdj>=end?'past':(nowAdj>=e.t?'cur':''));
+    const col=TL_RGB[e.tag==='출발'?'run':(/휴게|외박/.test(e.tag)?'rest':'chk')]||'#b8b3aa';
+    const dd=end-e.t;
+    h+=`<div class="vti ${st}" style="--vc:${col}"><span class="vtr"><span class="vtd"></span><span class="vtl2"></span></span><span class="vtb"><span class="vtt">${tlFmt(e.t)}</span> <b>${e.tag}</b> <span class="vtp">${e.place}</span>${e.note?`<span class="vtn">${e.note}</span>`:''}${st==='cur'?`<span class="vtnow">● 지금 ${tlFmt(nowAdj%1440)} · ${tlDur2(end-nowAdj)} 남음</span>`:(dd>1&&dd<1440?`<span class="vtdur">${tlDur2(dd)}</span>`:'')}</span></div>`;
+  });
+  return top+`<div class="vtl">${h}</div>`;
+}
+function tlViewGantt(segs,nowAdj,today){
+  const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
+  const lanes=[['점검',['chk']],['운행',['run']],['휴게',['rest','sleep']]];
+  let laneH='';
+  lanes.forEach(([nm,types])=>{
+    let sh='';segs.filter(s=>types.includes(s[2])).forEach(s=>{sh+=`<div class="gseg" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]}"></div>`;});
+    laneH+=`<div class="glane"><span class="gl">${nm}</span><span class="gb">${sh}</span></div>`;});
+  let ticks='';for(let m=Math.ceil(a/120)*120;m<=b;m+=120)ticks+=`<span class="gtick" style="left:${px(m)}%">${tlFmt(m)}</span>`;
+  let nm2='';if(today&&nowAdj>=a&&nowAdj<=b)nm2=`<div class="gnow" style="left:calc(34px + (100% - 34px)*${px(nowAdj)/100})"></div>`;
+  return tlStateHtml(segs,nowAdj,today)+`<div class="gwrap">${nm2}${laneH}<div class="gaxis">${ticks}</div></div>`;
+}
+function tlChips(s){
+  const dia=s.dia; if(!dia||!buildTL(dia))return '';
+  const ev=buildTL(dia); const sp=tlSplit(ev);
+  const isStb=s.type==='standby';
+  const mine = isStb ? sp.day1 : sp.day0;
+  if(!mine.length) return '';
+  const pick=t=>mine.filter(e=>e.k==='e'&&e.tag===t);
+  const chips=[];
+  if(isStb){[['기상'],['출무'],['승강홈']].forEach(([t])=>{const a=pick(t)[0];if(a)chips.push({k:t,v:tlFmt(a.t).replace('익일 ','')});});}
+  else{const plat=pick('승강홈')[0]; if(plat)chips.push({k:'승강홈',v:tlFmt(plat.t)});
+    pick('재출무').forEach(a=>chips.push({k:'재출무',v:tlFmt(a.t)}));}
+  return chips.length?`<div class="tlchip">${chips.map(c=>`<span class="c"><span class="ck">${c.k}</span><span class="cvl">${c.v}</span></span>`).join('')}</div>`:'';
+}
+function tlSection(s){
+  const dia=s.dia; if(!dia||!buildTL(dia))return '';
+  const ev=buildTL(dia); const sp=tlSplit(ev);
+  const isStb=s.type==='standby';
+  const mine = isStb ? sp.day1 : sp.day0;
+  if(!mine.length) return '';
+  // 뷰 선택
+  const v=store.get('tlview')||'card';
+  const segs=tlSegsFrom(mine);
+  const today=tlIsToday();
+  const nowAdj=tlNowAdj(isStb);
+  let body='';
+  if(v==='tline')body=tlViewTimeline(mine,nowAdj,today,segs);
+  else if(v==='gantt')body=segs.length?tlViewGantt(segs,nowAdj,today):'';
+  else body=segs.length?tlViewCard(segs,nowAdj,today):'';
+  const sel=`<div class="tlsel">${[['card','📍 현재'],['tline','📋 타임라인'],['gantt','📊 간트']].map(([k,l])=>`<button class="${v===k?'on':''}" onclick="setTlView('${k}')">${l}</button>`).join('')}</div>`;
+  return (`<div class="tlsec"><div class="tlhead">🕘 휴게·출무${isStb?' (비번날 아침)':''}</div>${sel}${body}</div>`).replace(/익일 /g,'');
+}
+
+buildCal();
+updateHdr();
+refreshMarks();
+render();
+
+</script>
+</body>
+</html>
