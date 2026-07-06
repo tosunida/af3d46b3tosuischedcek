@@ -371,12 +371,19 @@
 .tlgo .tgo{display:flex;flex-wrap:wrap;gap:6px}
 .tlgo .tgo button{padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:#faf9f6;font-size:12px;font-weight:700;color:var(--ink);font-family:inherit;cursor:pointer}
 .tlgo .tgo button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.aptb{border-radius:10px;padding:8px 11px;font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aptb{border-radius:11px;padding:10px 12px;font-size:12px;font-weight:600;margin-bottom:8px}
 .aptb.ok{background:#eef3ee;border:1px solid #cfe0d2;color:#3c6b4a}
 .aptb.no{background:#f6ecec;border:1px solid #e8cfcf;color:#b25151}
 .aptb input[type=time]{border:1px solid var(--line);border-radius:8px;padding:3px 6px;font-family:inherit;font-size:12px;font-weight:700;background:#fff}
 .lv.apt.on{background:#eef3ee;border-color:#9fc3a6;color:#3c6b4a}
-.cell.aptcell::before{content:'🍚';position:absolute;bottom:3px;left:4px;font-size:9px}
+.cell.aptcell::before{content:attr(data-apt);position:absolute;bottom:3px;left:4px;font-size:9px}
+.aptb .aptl1{display:flex;gap:5px;margin-bottom:7px}
+.atp{padding:6px 10px;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-size:11.5px;font-weight:700;color:var(--muted);font-family:inherit;cursor:pointer}
+.atp.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.aptb .aptl2{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.aptb .aptl2 .opt{font-size:10px;color:var(--faint);font-weight:600}
+.atx{width:24px;height:24px;border:1px solid var(--line);background:#fff;border-radius:7px;font-size:11px;color:var(--muted);font-family:inherit;cursor:pointer}
+.aptb .aptl3{font-size:11.5px;font-weight:700}
 </style>
 </head>
 <body>
@@ -655,36 +662,44 @@ function icsDT(y,m,d,minAbs){ // minAbs가 1440 넘으면 익일로
   return `${yy}${icsPad(mm2)}${icsPad(dd)}T${icsPad(Math.floor(t/60))}${icsPad(t%60)}00`;}
 function icsEsc(x){return String(x).replace(/,/g,'\\,').replace(/;/g,'\\;');}
 function icsBuild(){
-  const y=yr(),m=dispM(curMonth);
+  const y=yr(),mo=dispM(curMonth);
   let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//chaeun-sched//KR','CALSCALE:GREGORIAN'];
   let cnt=0;
-  SCHED.forEach(s=>{
-    if(s.type!=='day'&&s.type!=='night'&&s.type!=='edu')return;
-    let st,en,title,desc=[];
-    if(s.type==='edu'){st=540;en=1080;title='🏢 일근 (09:00~18:00)';}
-    else{
-      const D=DIA[s.dia]||{};const cm=s.cm||D.cm,tg=s.tg||D.tg;if(!cm)return;
-      st=toMin(cm);en=toMin(tg)+(D.ov?1440:0);if(en<=st&&!D.ov)en=st+60;
-      const nm=s.dia.replace(/^03/,'').replace(/^0+/,'')||s.dia;
-      // 핵심 시각들 desc
-      const g=computeGo(cm,s.dow);
-      if(g)desc.push(`준비 ${toHH(toMin(g[0])-75)} · 집출발 ${toHH(toMin(g[0])-15)} · 출근열차 ${g[0]}`);
-      else desc.push(`준비 ${toHH(toMin(cm)-110)} · 집출발 ${toHH(toMin(cm)-55)} (자차)`);
-      const evB=buildTL(s.dia);
-      if(evB){const plat=evB.find(e=>e.k==='e'&&e.tag==='승강홈');
-        title=`🚆 ${nm}다이아 승무${plat?` (승강홈 ${toHH(plat.t%1440)})`:''}`;
-        if(plat)desc.push(`승강홈 ${toHH(plat.t%1440)}`);}
-      else title=`🚆 ${nm}다이아 승무`;
-      desc.push(`종료 ${tg}${D.ov?' (익일)':''}`);
-    }
-    cnt++;
-    out.push('BEGIN:VEVENT',
-      `UID:cs-${y}${icsPad(m)}${icsPad(s.d)}-${cnt}@chaeun`,
-      `DTSTART;TZID=Asia/Seoul:${icsDT(y,m,s.d,st)}`,
-      `DTEND;TZID=Asia/Seoul:${icsDT(y,m,s.d,en)}`,
+  const push=(d,st,en,title,descArr)=>{cnt++;
+    out.push('BEGIN:VEVENT',`UID:cs-${y}${icsPad(mo)}${icsPad(d)}-${cnt}@chaeun`,
+      `DTSTART;TZID=Asia/Seoul:${icsDT(y,mo,d,st)}`,`DTEND;TZID=Asia/Seoul:${icsDT(y,mo,d,en)}`,
       `SUMMARY:${icsEsc(title)}`,
-      desc.length?`DESCRIPTION:${icsEsc(desc.join(' / '))}`:'',
-      'END:VEVENT');
+      descArr&&descArr.length?`DESCRIPTION:${icsEsc(descArr.join('\\n'))}`:'','END:VEVENT');};
+  const fmtE=e=>`${tlFmt(e.t)} ${e.tag}${e.place?' · '+e.place:''}${e.note?' ('+String(e.note).replace(/<[^>]*>/g,'')+')':''}`;
+  const fmtB=e=>String(e.text||'').replace(/<[^>]*>/g,'');
+  SCHED.forEach(s=>{
+    const ap=getAppt(s.d);
+    if(ap){const M=APT_META[ap.t]||APT_META.etc;const aS=toMin(ap.s),aE=ap.e?toMin(ap.e):aS+60;
+      push(s.d,aS,aE,`${M[0]} ${M[1]}${ap.e?'':' (끝 미정)'}`,[apptAvail(s.d,ap).why]);}
+    if(getSoj().includes(s.d)){const sa=sojAvail(s.d);
+      if(sa.ok)push(s.d,540,660,'📚 소집교육 (09:00~11:00)',[sa.why]);}
+    if(s.type==='edu'){push(s.d,540,1080,'🏢 일근 (09:00~18:00)',null);return;}
+    if(s.type!=='day'&&s.type!=='night')return;
+    const D=DIA[s.dia]||{};const cm=s.cm||D.cm;if(!cm)return;
+    const nm=s.dia.replace(/^03/,'').replace(/^0+/,'')||s.dia;
+    const dl=delGet(s);
+    const evB=buildTL(s.dia,(dl&&dl.min>0)?dl:null);
+    if(!evB){push(s.d,toMin(cm),toMin(s.tg||D.tg)+(D.ov?1440:0),`🚆 ${nm}다이아 승무`,null);return;}
+    const sp=tlSplit(evB);
+    let lines=tlCommuteEv(s,D).concat(sp.day0);
+    if(D.ov)lines=lines.concat(sp.day1);
+    const endEv=lines.filter(e=>e.k==='e'&&e.tag==='종료').pop();
+    let en=endEv?endEv.t:toMin(s.tg||D.tg)+(D.ov?1440:0);
+    if(endEv){const s2=D.ov?{d:s.d,dow:(s.dow+1)%7,type:s.type}:s;
+      const back=tlBackInfo(s2,endEv.t);
+      if(back.taxi){lines=lines.concat([{k:'e',t:endEv.t,tag:'택시 퇴근',place:'마산→집 30분'},{k:'e',t:back.homeAbs,tag:'귀가',place:'집'}]);en=back.homeAbs;}
+      else{lines=lines.concat([{k:'e',t:back.depAbs,tag:back.confirmed?'퇴근':'퇴근(예상)',place:`마산→창원중앙 ${gf(back.pick.g)}${back.pick.no?' '+back.pick.no:''}`},{k:'e',t:back.homeAbs,tag:'귀가',place:'집 (도착+16분)'}]);en=back.homeAbs;}}
+    const prepEv=lines.find(e=>e.k==='e');
+    const st=prepEv?prepEv.t:toMin(cm);
+    const plat=lines.find(e=>e.k==='e'&&e.tag==='승강홈');
+    const desc=lines.map(e=>e.k==='e'?fmtE(e):fmtB(e));
+    if(dl&&dl.min>0)desc.unshift(`🚨 지연 +${dl.min}분 반영됨`);
+    push(s.d,st,en,`🚆 ${nm}다이아 (준비 ${tlFmt(st)} · 승강홈 ${plat?tlFmt(plat.t):'-'})`,desc);
   });
   out.push('END:VCALENDAR');
   return {txt:out.filter(Boolean).join('\r\n'),cnt};}
@@ -730,7 +745,7 @@ function refreshMarks(){const _gt=document.getElementById('grandTotal');if(_gt)_
     if(has){if(!t){t=document.createElement('span');t.className='tx';t.textContent='🚕';c.appendChild(t);}}else if(t)t.remove();
     let f=c.querySelector('.fd');const hf=getFood(d).length>0;
     if(hf){if(!f){f=document.createElement('span');f.className='fd';f.textContent='🍽';c.appendChild(f);}}else if(f)f.remove();
-    const s=SCHED.find(x=>x.d===d);const lv=(s&&s.lv)||getLeave(d);c.classList.toggle('lvcell',!!lv);c.classList.toggle('sojcell',getSoj().includes(d));c.classList.toggle('aptcell',!!getAppt(d));
+    const s=SCHED.find(x=>x.d===d);const lv=(s&&s.lv)||getLeave(d);c.classList.toggle('lvcell',!!lv);c.classList.toggle('sojcell',getSoj().includes(d));const _ap=getAppt(d);c.classList.toggle('aptcell',!!_ap);if(_ap)c.dataset.apt=(APT_META[_ap.t]||APT_META.etc)[0];
     let lb=c.querySelector('.lvm');
     if(lv){if(!lb){lb=document.createElement('span');c.appendChild(lb);}lb.className='lvm '+(lv==='연차'?'ann':'sick');lb.textContent=lv==='연차'?'연':'병';}else if(lb)lb.remove();});}
 
@@ -1004,27 +1019,53 @@ function sojAvail(d){const s=SCHED.find(x=>x.d===d);if(!s)return{ok:true,why:''}
   const cm=toMin(cmS),tg=tgS?toMin(tgS):cm+600;const night=!!dia.ov||(tgS&&toMin(tgS)<cm);
   const ov=night?false:(cm<660&&tg>540);
   return ov?{ok:false,why:`${s.dia}(${cmS}~${tgS})와 겹침 → 참석 불가`}:{ok:true,why:`출무 ${cmS} 전 참석 가능`};}
-/* ── 🍚 밥약속 (동기 약속 등) ── */
+/* ── 📌 일정 (약속·운동·기타) ── */
 const apKey=d=>'appt-'+yr()+'-'+mm()+'-'+d;
-function getAppt(d){return store.get(apKey(d))||'';}
-function setApptTime(d,v){store.set(apKey(d),v||'');refreshMarks();render();}
-function toggleAppt(d){if(getAppt(d))store.set(apKey(d),'');else store.set(apKey(d),'18:30');refreshMarks();render();}
-function apptAvail(d,tm){const s=SCHED.find(x=>x.d===d);if(!s||!tm)return{ok:true,why:''};
-  const t=toMin(tm);
+const APT_META={meal:['🍚','약속'],gym:['💪','운동'],etc:['📌','기타']};
+function getAppt(d){const v=store.get(apKey(d));if(!v)return null;
+  try{const o=JSON.parse(v);if(o&&o.s)return{t:o.t||'meal',s:o.s,e:o.e||''};}catch(e){}
+  if(/^\d\d:\d\d$/.test(v))return{t:'meal',s:v,e:''}; // 구버전 마이그레이션
+  return null;}
+function setAppt(d,o){store.set(apKey(d),o?JSON.stringify(o):'');refreshMarks();render();}
+function toggleAppt(d){setAppt(d,getAppt(d)?null:{t:'meal',s:'18:30',e:''});}
+function apptField(d,k,v){const a=getAppt(d)||{t:'meal',s:'18:30',e:''};a[k]=v;
+  store.set(apKey(d),JSON.stringify(a));refreshMarks();
+  // 렌더 금지(iOS 시간 휠이 닫히는 문제) → 배너만 제자리 갱신
+  const box=document.querySelector('.aptb');
+  if(box){const av=apptAvail(d,a);
+    box.classList.toggle('ok',av.ok);box.classList.toggle('no',!av.ok);
+    const l3=box.querySelector('.aptl3');if(l3)l3.innerHTML=`${av.ok?'✅':'⚠️'} ${av.why}`;
+    if(k==='t')box.querySelectorAll('.atp').forEach(b=>b.classList.toggle('on',(b.getAttribute('onclick')||'').includes(`'${a.t}'`)));}
+}
+function apptBlur(){ // 휠 닫힌 뒤(포커스 아웃) 타임라인 반영
+  setTimeout(()=>{const ae=document.activeElement;
+    if(!(ae&&ae.closest&&ae.closest('.aptb')))render();},220);}
+function apptAvail(d,a){const s=SCHED.find(x=>x.d===d);if(!s||!a)return{ok:true,why:''};
+  const aS=toMin(a.s),aE=a.e?toMin(a.e):aS+60; // 끝 생략 시 1시간으로 판정
+  const busy=[];
+  const D=DIA[s.dia]||{};
+  if(s.type==='day'||s.type==='night'){
+    const cmS=s.cm||D.cm,tgS=s.tg||D.tg;
+    if(cmS){const cm=toMin(cmS);const g=computeGo(cmS,s.dow);
+      const prep=g?toMin(g[0])-75:cm-110;
+      busy.push([prep,cm,`출근 준비·이동(${toHH(prep)}~${cmS})`]);
+      if(s.type==='night')busy.push([cm,1440,`야간 근무·박(${cmS}~)`]);
+      else{const tg=toMin(tgS);busy.push([cm,tg,`근무(${cmS}~${tgS})`],[tg,tg+46,`퇴근 이동(${tgS} 이후)`]);}}}
+  else if(s.type==='standby'){const p=SCHED.find(x=>x.d===d-1);const pd=p&&DIA[p.dia];const tgS=(p&&p.tg)||(pd&&pd.tg);
+    if(tgS)busy.push([0,toMin(tgS)+30,`비번 복귀(${tgS})+정리`]);}
+  else if(s.type==='edu')busy.push([510,1080,'일근(9~18시)']);
+  for(const[f,t,lbl]of busy)if(Math.max(aS,f)<Math.min(aE,t))return{ok:false,why:`${lbl}과 겹침`};
   if(s.type==='off'||s.type==='pre')return{ok:true,why:'휴무라 여유 있음'};
-  if(s.type==='edu')return t>=540&&t<1080?{ok:false,why:'일근(9~18시)과 겹침'}:{ok:true,why:'일근 '+(t<540?'전':'후')+' 시간'};
-  if(s.type==='standby'){const p=SCHED.find(x=>x.d===d-1);const dia=p&&DIA[p.dia];const tgS=(p&&p.tg)||(dia&&dia.tg);
-    return (tgS&&t<toMin(tgS))?{ok:false,why:`비번 복귀(${tgS}) 전이라 불가`}:{ok:true,why:'복귀 후라 가능'};}
-  const D=DIA[s.dia]||{};const cmS=s.cm||D.cm,tgS=s.tg||D.tg;if(!cmS)return{ok:true,why:''};
-  const cm=toMin(cmS);const night=!!D.ov;
-  if(night)return t>=cm-60?{ok:false,why:`야간 출무(${cmS}) 준비와 겹침`}:{ok:true,why:'출무 전 가능 (박사업이라 저녁은 불가)'};
-  const tg=toMin(tgS);
-  return (t>=cm-60&&t<tg+30)?{ok:false,why:`근무(${cmS}~${tgS})와 겹침`}:{ok:true,why:t<cm?'출근 전':'퇴근 후'};}
-function apptBlock(d){const tm=getAppt(d);
+  return{ok:true,why:'근무·이동과 안 겹침'};}
+function apptBlock(d){const a=getAppt(d);
   let banner='';
-  if(tm){const a=apptAvail(d,tm);
-    banner=`<div class="aptb ${a.ok?'ok':'no'}">🍚 밥약속 <input type="time" value="${tm}" onchange="setApptTime(${d},this.value)"> · ${a.ok?'✅':'⚠️'} ${a.why}</div>`;}
-  return banner+`<div class="leave"><span class="lvlab">밥약속</span><button class="lv apt ${tm?'on':''}" onclick="toggleAppt(${d})">🍚 ${tm?'약속 해제':'약속 추가'}</button></div>`;}
+  if(a){const av=apptAvail(d,a);
+    const pills=Object.keys(APT_META).map(k=>`<button class="atp ${a.t===k?'on':''}" onclick="apptField(${d},'t','${k}')">${APT_META[k][0]} ${APT_META[k][1]}</button>`).join('');
+    banner=`<div class="aptb ${av.ok?'ok':'no'}">
+      <div class="aptl1">${pills}</div>
+      <div class="aptl2"><input type="time" value="${a.s}" onchange="apptField(${d},'s',this.value)" onblur="apptBlur()"><span>~</span><input type="time" value="${a.e}" onchange="apptField(${d},'e',this.value)" onblur="apptBlur()">${a.e?`<button class="atx" onclick="apptField(${d},'e','')">✕</button>`:`<span class="opt">끝 생략가능</span>`}</div>
+      <div class="aptl3">${av.ok?'✅':'⚠️'} ${av.why}</div></div>`;}
+  return banner+`<div class="leave"><span class="lvlab">일정</span><button class="lv apt ${a?'on':''}" onclick="toggleAppt(${d})">📌 ${a?'일정 해제':'일정 추가'}</button></div>`;}
 function sojBlock(d){const on=getSoj().includes(d);
   let banner='';
   if(on){const a=sojAvail(d);banner=`<div class="sojb ${a.ok?'ok':'no'}">📚 소집교육 09:00~11:00 · ${a.ok?'✅':'❌'} ${a.why}</div>`;}
@@ -1196,8 +1237,8 @@ function tlRows(evs){return evs.map(e=>{
   return `<div class="tlrow ${TL_C[e.tag]||''}${hl}"><span class="tltm">${tlFmt(e.t)}</span><span class="tlbd"><b class="tltg">${e.tag}</b><span class="tlpl">${e.place}</span>${e.note?`<span class="tlnt">${e.note}</span>`:''}</span></div>`;
 }).join('');}
 /* 카드용: 핵심 시각 칩 + 상세 타임라인 fold */
-const TL_RGB={run:'#3f5180',rest:'#5a8763',chk:'#c2542f',sleep:'#6f5e94',move:'#c9a227'};
-const TL_EMO={run:'🚆',rest:'☕',chk:'📋',sleep:'🛏️',move:'🚶'};
+const TL_RGB={run:'#3f5180',rest:'#5a8763',chk:'#c2542f',sleep:'#6f5e94',move:'#c9a227',apt:'#8c8881',soj:'#c9902f'};
+const TL_EMO={run:'🚆',rest:'☕',chk:'📋',sleep:'🛏️',move:'🚶',apt:'📌',soj:'📚'};
 const tlDur2=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+'시간 ':'')+(mm?mm+'분':(h?'':'0분'));};
 function tlSegsFrom(ev){
   const out=[];
@@ -1220,10 +1261,11 @@ function tlIsToday(){const rn=new Date();return rn.getFullYear()===yr()&&(rn.get
 function tlNowAdj(isStandby){const rn=new Date();return rn.getHours()*60+rn.getMinutes()+(isStandby?1440:0);}
 function setTlView(v){store.set('tlview',v);render();}
 function tlBar(segs,nowAdj){
-  const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
-  let h=segs.map(s=>`<div class="tbseg ${s[5]?'lateseg':''}" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]};${s[6]?'opacity:.45':''}"></div>`).join('');
+  const a=Math.min(...segs.map(s=>s[0])),b=Math.max(...segs.map(s=>s[1]));const px=m=>((m-a)/(b-a)*100);
+  const ordered=segs.filter(s=>s[2]!=='apt'&&s[2]!=='soj').concat(segs.filter(s=>s[2]==='apt'||s[2]==='soj')); // 일정·교육은 위에
+  let h=ordered.map(s=>`<div class="tbseg ${s[5]?'lateseg':''}" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]};${s[6]?'opacity:.45':''}"></div>`).join('');
   let nm='';if(nowAdj!=null&&nowAdj>=a&&nowAdj<=b)nm=`<div class="tbnow" style="left:${px(nowAdj)}%"></div>`;
-  return `<div class="tbwrap"><div class="tbbar">${h}</div>${nm}<span class="tbt" style="left:0">${tlFmt(segs[0][0])}</span><span class="tbt" style="right:0">${tlFmt(segs[segs.length-1][1])}</span></div>`;
+  return `<div class="tbwrap"><div class="tbbar">${h}</div>${nm}<span class="tbt" style="left:0">${tlFmt(a)}</span><span class="tbt" style="right:0">${tlFmt(b)}</span></div>`;
 }
 function tlStateHtml(segs,nowAdj,today){
   if(!today||!segs||!segs.length)return '';
@@ -1245,7 +1287,7 @@ function tlViewTimeline(ev,nowAdj,today,segs){
     if(e.k==='b'){const c=e.tag==='외박'?'stay':(e.tag==='총휴게'?'sum':(e.tag==='회차'?'turn':'rest'));h+=`<div class="tlblk ${c}">${e.text}</div>`;return;}
     const end=endOf(e);
     const st=!today?'':(nowAdj>=end?'past':(nowAdj>=e.t?'cur':''));
-    const col=TL_RGB[e.tag==='출발'?'run':(/휴게|외박/.test(e.tag)?'rest':(/^(준비|집 출발|출근열차|퇴근|택시|귀가)/.test(e.tag)?'move':'chk'))]||'#b8b3aa';
+    const col=e.soj?TL_RGB.soj:e.apt?TL_RGB.apt:TL_RGB[e.tag==='출발'?'run':(/휴게|외박/.test(e.tag)?'rest':(/^(준비|집 출발|출근열차|퇴근|택시|귀가)/.test(e.tag)?'move':'chk'))]||'#b8b3aa';
     const dd=end-e.t;
     const tmH=e.late?`<span class="strike2">${tlFmt(e.orig)}</span> <span class="late2">${tlFmt(e.t)} (+${e.late})</span>`:`<span class="vtt">${tlFmt(e.t)}</span>`;
     h+=`<div class="vti ${st} ${e.dash?'dash':''}" style="--vc:${col}"><span class="vtr"><span class="vtd"></span><span class="vtl2"></span></span><span class="vtb">${tmH} <b>${e.tag}</b> <span class="vtp">${e.place}</span>${e.note?`<span class="vtn">${e.note}</span>`:''}${st==='cur'?`<span class="vtnow">● 지금 ${tlFmt(nowAdj%1440)} · ${tlDur2(end-nowAdj)} 남음</span>`:(dd>1&&dd<1440?`<span class="vtdur">${tlDur2(dd)}</span>`:'')}</span></div>`;
@@ -1253,8 +1295,9 @@ function tlViewTimeline(ev,nowAdj,today,segs){
   return top+`<div class="vtl">${h}</div>`;
 }
 function tlViewGantt(segs,nowAdj,today){
-  const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
+  const a=Math.min(...segs.map(s2=>s2[0])),b=Math.max(...segs.map(s2=>s2[1]));const px=m=>((m-a)/(b-a)*100);
   const lanes=[['이동',['move']],['점검',['chk']],['운행',['run']],['휴게',['rest','sleep']]];
+  if(segs.some(s2=>s2[2]==='apt'||s2[2]==='soj'))lanes.push(['일정',['apt','soj']]);
   let laneH='';
   lanes.forEach(([nm,types])=>{
     let sh='';segs.filter(s=>types.includes(s[2])).forEach(s=>{sh+=`<div class="gseg ${s[5]?'lateseg':''}" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]};${s[6]?'opacity:.45':''}"></div>`;});
@@ -1345,7 +1388,19 @@ function tlSection(s){
       {k:'e',t:back.homeAbs,tag:'귀가',place:'집',note:null});}
     else{mineX.push({k:'e',t:back.depAbs,tag:back.confirmed?'퇴근':'퇴근 (예상)',place:`마산 → 창원중앙 · ${gf(back.pick.g)}${back.pick.no?' '+back.pick.no:''}`,note:`${back.pick.arr} 창원중앙 도착 → 집까지 16분`,dash:!back.confirmed},
       {k:'e',t:back.homeAbs,tag:'귀가',place:'집',note:'창원중앙 도착 +16분',dash:!back.confirmed});}}
-  const segs=tlSegsFrom(mineX);
+  let segs=tlSegsFrom(mineX);
+  // 📌 일정 오버레이 (이 날짜의 일정)
+  const ap=getAppt(s.d);
+  let mineT=mineX;
+  const dayOff=isStb?1440:0; // 비번 뷰는 +1일 좌표
+  if(ap){const M=APT_META[ap.t]||APT_META.etc;const aS=toMin(ap.s)+dayOff;const aE=(ap.e?toMin(ap.e):toMin(ap.s)+60)+dayOff;
+    segs=segs.concat([[aS,aE,'apt',M[1],M[0],0,ap.e?0:1]]);
+    mineT=mineT.concat([{k:'e',t:aS,tag:`${M[0]} ${M[1]}`,place:ap.e?`${ap.s}~${ap.e}`:`${ap.s} (끝 미정)`,note:'내 일정',apt:true}]);}
+  // 📚 소집교육 (참석 가능한 날만 09~11시 표시)
+  if(getSoj().includes(s.d)){const sa=sojAvail(s.d);
+    if(sa.ok){segs=segs.concat([[540+dayOff,660+dayOff,'soj','소집교육','📚',0,0]]);
+      mineT=mineT.concat([{k:'e',t:540+dayOff,tag:'📚 소집교육',place:'09:00~11:00 · 사업소',note:sa.why,soj:true}]);}}
+  if(mineT!==mineX)mineT=mineT.slice().sort((x,y)=>x.t-y.t);
   const today=tlIsToday();
   const nowAdj=tlNowAdj(isStb);
   // 지연 경고
@@ -1369,7 +1424,7 @@ function tlSection(s){
     goHtml=`<div class="tlgo"><div class="tgl">🚉 퇴근 열차 — ${back.confirmed?'✅ 확정':'미정 · 가장 빠른 편 예상'}</div><div class="tgo">${back.cands.map(c=>`<button class="${back.confirmed&&back.pick.dep===c.dep?'on':''}" onclick="tlPickGo('${c.dep}')">${c.dep} ${gf(c.g)}${c.no?' '+c.no:''}</button>`).join('')}</div></div>`;}
   else if(back&&back.taxi){goHtml=`<div class="tlgo"><div class="tgl">🚕 퇴근 열차 없음 → 택시 30분 · 귀가 ${tlFmt(back.homeAbs).replace('익일 ','')}${back.homeAbs>=1440&&!isStb?' (익일)':''}</div></div>`;}
   let body='';
-  if(v==='tline')body=tlViewTimeline(mineX,nowAdj,today,segs)+goHtml;
+  if(v==='tline')body=tlViewTimeline(mineT,nowAdj,today,segs)+goHtml;
   else if(v==='gantt')body=(segs.length?tlViewGantt(segs,nowAdj,today):'')+goHtml;
   else body=segs.length?tlViewCard(segs,nowAdj,today):'';
   const sel=`<div class="tlsel">${[['card','📍 현재'],['tline','📋 타임라인'],['gantt','📊 간트']].map(([k,l])=>`<button class="${v===k?'on':''}" onclick="setTlView('${k}')">${l}</button>`).join('')}</div>`;
