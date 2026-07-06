@@ -346,6 +346,37 @@
 #uhint{display:none;align-items:center;gap:8px;background:#fdf9f3;border:1px solid #ecdfc8;border-radius:11px;padding:8px 12px;font-size:11.5px;color:#8a6a3a;font-weight:600;margin:0 24px 8px}
 #uhint span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #uhint button{margin-left:auto;flex-shrink:0;white-space:nowrap;border:1px solid #e0cdb0;background:#fff;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:#a4501f;font-family:inherit}
+
+.tlhead{display:flex;align-items:center}
+.tdchipwrap{margin-left:auto}
+.tddchip{border:1.5px dashed #e0cdb0;background:#fff;border-radius:9px;padding:5px 9px;font-size:10.5px;font-weight:800;color:var(--muted);font-family:inherit;cursor:pointer}
+.tddchip.late{border-color:#c0392b;background:#fbeeec;color:#c0392b}
+.tddly{background:#fff;border:1.5px dashed #e0cdb0;border-radius:12px;padding:11px 13px;margin:8px 0 4px}
+.tddly .tdh{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.tddly .tdlegs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.tddly .tdlegs button{padding:8px 13px;border-radius:10px;font-size:13px;font-weight:800;font-family:inherit;white-space:nowrap;border:1.5px solid var(--line);background:#faf9f6;color:var(--muted);cursor:pointer}
+.tddly .tdlegs button.on{border-color:#c0392b;background:#fbeeec;color:#c0392b}
+.tddly .tdrow{display:flex;align-items:center;justify-content:center;gap:12px}
+.tddly .tdrow button{width:38px;height:38px;border:1px solid var(--line);background:#faf9f6;border-radius:11px;font-size:19px;font-weight:800;color:var(--ink);font-family:inherit;line-height:1;cursor:pointer}
+.tddly .tdv{font-size:18px;font-weight:800;min-width:64px;text-align:center;font-variant-numeric:tabular-nums;color:#c0392b}
+.tddly .tdv.zero{color:var(--faint)}
+.tlwarn{background:#f9e9e7;border:1.5px solid #e8b8b1;border-radius:11px;padding:9px 12px;font-size:12px;font-weight:700;color:#c0392b;margin:8px 0 4px}
+.strike2{text-decoration:line-through;color:var(--faint);font-weight:600;font-variant-numeric:tabular-nums}
+.late2{color:#c0392b;font-weight:800;font-variant-numeric:tabular-nums}
+.vti.dash .vtl2{background:repeating-linear-gradient(var(--vc) 0 4px,transparent 4px 8px);opacity:.5}
+.vti.dash .vtd{background:#fff}
+.tbseg.lateseg,.gseg.lateseg{background:repeating-linear-gradient(45deg,#c0392b 0 5px,#e78b7e 5px 10px)!important}
+.tlgo{margin-top:10px}
+.tlgo .tgl{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px}
+.tlgo .tgo{display:flex;flex-wrap:wrap;gap:6px}
+.tlgo .tgo button{padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:#faf9f6;font-size:12px;font-weight:700;color:var(--ink);font-family:inherit;cursor:pointer}
+.tlgo .tgo button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.aptb{border-radius:10px;padding:8px 11px;font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aptb.ok{background:#eef3ee;border:1px solid #cfe0d2;color:#3c6b4a}
+.aptb.no{background:#f6ecec;border:1px solid #e8cfcf;color:#b25151}
+.aptb input[type=time]{border:1px solid var(--line);border-radius:8px;padding:3px 6px;font-family:inherit;font-size:12px;font-weight:700;background:#fff}
+.lv.apt.on{background:#eef3ee;border-color:#9fc3a6;color:#3c6b4a}
+.cell.aptcell::before{content:'🍚';position:absolute;bottom:3px;left:4px;font-size:9px}
 </style>
 </head>
 <body>
@@ -385,6 +416,7 @@
   <span class="bklab">💾 백업</span>
   <button class="bkbtn" onclick="exportData()">📤 내보내기</button>
   <button class="bkbtn" onclick="document.getElementById('impf').click()">📥 불러오기</button>
+  <button class="bkbtn" onclick="icsExport()">📆 캘린더</button>
   <input id="impf" type="file" accept="application/json,.json" onchange="importData(this)">
 </div>
 <footer>퇴근 기차는 <b>마산 도착 +10분</b>부터 3개 표시 · 시간표는 <b>코레일 공식(요일별)</b> 기준, SRT 제외 · 열차 종류·번호는 시간표 <b>✏️편집</b>으로 수정 · 량수=네 엑셀, 조성=행로표 · 운용팀장 주간순번 7/1 C→7/2 B→7/3 A→7/4 D (4일주기) · 기록은 이 기기에만 저장(정기적으로 <b>내보내기</b> 권장).</footer></footer>
@@ -593,44 +625,98 @@ function addFood(d){const el=document.getElementById('foodin'+d);const v=parseIn
 function delFood(d,i){const a=getFood(d);a.splice(i,1);setFood(d,a);render();refreshMarks();}
 const getCycle=()=>{const v=+(store.get('cyclestart')||1);return(v>=1&&v<=28)?v:1;};
 function setCycle(s){store.set('cyclestart',String(s));render();refreshMarks();}
-function exportData(){const data={_app:'chaeun-schedule',_ver:1,_date:new Date().toISOString()};
-  const keys=['cyclestart','ttov'];for(let d=1;d<=31;d++){keys.push(tkey(d),fkey(d),lkey(d));}
-  keys.forEach(k=>{const v=store.get(k);if(v!=null)data[k]=v;});
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
+/* ── PWA 안전 파일 공유 (홈화면 앱은 다운로드 차단 → iOS 공유시트 사용) ── */
+function bkMsg(t,ok){let el=document.getElementById('bkmsg');
+  if(!el){el=document.createElement('div');el.id='bkmsg';
+    el.style.cssText='font-size:11.5px;font-weight:700;margin:6px 24px;text-align:center;min-height:14px';
+    const bk=document.querySelector('.backup');if(bk)bk.after(el);else document.body.appendChild(el);}
+  el.style.color=ok===false?'#b25151':'#3c6b4a';el.textContent=t||'';
+  if(t)setTimeout(()=>{if(el.textContent===t)el.textContent='';},6000);}
+async function shareFile(blob,name,type){
+  try{
+    const file=new File([blob],name,{type});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file]});
+      bkMsg('공유창에서 "파일에 저장" 또는 캘린더 추가를 선택하면 돼 ✓');return true;}
+  }catch(e){if(e&&e.name==='AbortError')return true;}
+  try{
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+    bkMsg('다운로드 시작 — 파일 앱 다운로드 폴더 확인 ✓');return true;
+  }catch(e){bkMsg('이 화면에선 저장이 막혀 있어 — 사파리로 접속해서 눌러줘',false);return false;}}
+/* ── 📆 캘린더(.ics) 내보내기: 이번 달 근무 → 아이폰 캘린더 → 잠금화면 위젯 ── */
+function icsPad(n){return String(n).padStart(2,'0');}
+function icsDT(y,m,d,minAbs){ // minAbs가 1440 넘으면 익일로
+  let dd=d+Math.floor(minAbs/1440),mm2=m,yy=y;
+  const dim=new Date(y,m,0).getDate();
+  if(dd>dim){dd-=dim;mm2++;if(mm2>12){mm2=1;yy++;}}
+  const t=((minAbs%1440)+1440)%1440;
+  return `${yy}${icsPad(mm2)}${icsPad(dd)}T${icsPad(Math.floor(t/60))}${icsPad(t%60)}00`;}
+function icsEsc(x){return String(x).replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function icsBuild(){
+  const y=yr(),m=dispM(curMonth);
+  let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//chaeun-sched//KR','CALSCALE:GREGORIAN'];
+  let cnt=0;
+  SCHED.forEach(s=>{
+    if(s.type!=='day'&&s.type!=='night'&&s.type!=='edu')return;
+    let st,en,title,desc=[];
+    if(s.type==='edu'){st=540;en=1080;title='🏢 일근 (09:00~18:00)';}
+    else{
+      const D=DIA[s.dia]||{};const cm=s.cm||D.cm,tg=s.tg||D.tg;if(!cm)return;
+      st=toMin(cm);en=toMin(tg)+(D.ov?1440:0);if(en<=st&&!D.ov)en=st+60;
+      const nm=s.dia.replace(/^03/,'').replace(/^0+/,'')||s.dia;
+      // 핵심 시각들 desc
+      const g=computeGo(cm,s.dow);
+      if(g)desc.push(`준비 ${toHH(toMin(g[0])-75)} · 집출발 ${toHH(toMin(g[0])-15)} · 출근열차 ${g[0]}`);
+      else desc.push(`준비 ${toHH(toMin(cm)-110)} · 집출발 ${toHH(toMin(cm)-55)} (자차)`);
+      const evB=buildTL(s.dia);
+      if(evB){const plat=evB.find(e=>e.k==='e'&&e.tag==='승강홈');
+        title=`🚆 ${nm}다이아 승무${plat?` (승강홈 ${toHH(plat.t%1440)})`:''}`;
+        if(plat)desc.push(`승강홈 ${toHH(plat.t%1440)}`);}
+      else title=`🚆 ${nm}다이아 승무`;
+      desc.push(`종료 ${tg}${D.ov?' (익일)':''}`);
+    }
+    cnt++;
+    out.push('BEGIN:VEVENT',
+      `UID:cs-${y}${icsPad(m)}${icsPad(s.d)}-${cnt}@chaeun`,
+      `DTSTART;TZID=Asia/Seoul:${icsDT(y,m,s.d,st)}`,
+      `DTEND;TZID=Asia/Seoul:${icsDT(y,m,s.d,en)}`,
+      `SUMMARY:${icsEsc(title)}`,
+      desc.length?`DESCRIPTION:${icsEsc(desc.join(' / '))}`:'',
+      'END:VEVENT');
+  });
+  out.push('END:VCALENDAR');
+  return {txt:out.filter(Boolean).join('\r\n'),cnt};}
+function icsExport(){
+  const {txt,cnt}=icsBuild();
+  if(!cnt){bkMsg('이 달엔 내보낼 근무 일정이 없어',false);return;}
+  const blob=new Blob([txt],{type:'text/calendar'});
+  shareFile(blob,`근무_${yr()}-${icsPad(dispM(curMonth))}.ics`,'text/calendar');}
+function exportData(){const data={_app:'chaeun-schedule',_ver:2,_date:new Date().toISOString()};
+  // 앱의 모든 저장 키 백업 (택시·식비·연차·직접입력월·소집교육·밥약속·지연·퇴근선택·시간표편집 등)
+  const PRE=['taxi-','food-','leave-','usched-','soj-','appt-','delay-','gopick-'];
+  const ONE=['cyclestart','ttov','tlview'];
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+    if(ONE.includes(k)||PRE.some(p2=>k.startsWith(p2))){const v=localStorage.getItem(k);if(v!=null&&v!=='')data[k]=v;}}}
+  catch(e){ONE.forEach(k=>{const v=store.get(k);if(v!=null)data[k]=v;});}
   const dt=new Date(),p=n=>String(n).padStart(2,'0');
-  a.href=url;a.download=`채은_승무앱_백업_${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}.json`;
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  shareFile(blob,`채은_승무앱_백업_${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}.json`,'application/json');}
 function importData(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{const o=JSON.parse(r.result);
-    if(!o||o._app!=='chaeun-schedule'){alert('이 앱의 백업 파일이 아니에요.');input.value='';return;}
-    if(!confirm('지금 기기의 기록을 백업 내용으로 덮어쓸까요?')){input.value='';return;}
-    let n=0;Object.keys(o).forEach(k=>{if(k[0]==='_')return;store.set(k,o[k]);n++;});
-    render();refreshMarks();updateHdr();alert(`복원 완료 (${n}개 항목).`);
-  }catch(e){alert('파일을 읽을 수 없어요. JSON 백업 파일인지 확인해줘.');}input.value='';};
+    if(!o||o._app!=='chaeun-schedule'){bkMsg('이 앱의 백업 파일이 아니야',false);input.value='';return;}
+    window._pendingImport=o;input.value='';
+    let el=document.getElementById('bkmsg');bkMsg('');
+    el=document.getElementById('bkmsg');
+    el.innerHTML=`백업(${o._date?o._date.slice(0,10):'?'})으로 덮어쓸까? <button onclick="applyImport()" style="margin:0 4px;padding:4px 10px;border:1px solid #9fc3a6;background:#eef3ee;border-radius:8px;font-weight:800;color:#3c6b4a;font-family:inherit">✓ 실행</button><button onclick="window._pendingImport=null;bkMsg('취소됨')" style="padding:4px 10px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:700;color:var(--muted);font-family:inherit">취소</button>`;
+  }catch(e){bkMsg('파일을 읽지 못했어',false);input.value='';}};
   r.readAsText(f);}
-function cycleWindow(){const S=getCycle();const now=new Date();
-  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  let cs=new Date(today.getFullYear(),today.getMonth(),S);
-  if(cs>today)cs=new Date(today.getFullYear(),today.getMonth()-1,S);
-  return [cs,today];}
-function totalBlock(){const S=getCycle(),now=new Date();
-  const isRM=(now.getFullYear()===2026&&now.getMonth()+1===dispM(curMonth)&&yr()===2026);
-  const w=cycleWindow(),cs=w[0],today=w[1];let tx=0,fd=0,label;
-  const fmt=x=>`${x.getMonth()+1}/${x.getDate()}`;
-  const nd=SCHED.length;
-  if(isRM){for(let d=1;d<=nd;d++){const dt=new Date(2026,curMonth-1,d);
-      if(dt>=cs&&dt<=today){getTaxi(d).forEach(v=>tx+=+v||0);getFood(d).forEach(v=>fd+=+v||0);}}
-    label=`${fmt(cs)}~${fmt(today)}`;}
-  else{for(let d=1;d<=nd;d++){getTaxi(d).forEach(v=>tx+=+v||0);getFood(d).forEach(v=>fd+=+v||0);}
-    label=`${curMonth}월 전체`;}
-  return `<div class="total">
-    <div class="ttop"><span class="tlab">💰 총 사용금액</span><b class="tval">₩${won(tx+fd)}</b></div>
-    <div class="tsub">🚕 ₩${won(tx)} · 🍽 ₩${won(fd)} <span class="trange">(${label})</span></div>
-    <div class="cyc"><span class="cyclab">정산 시작일</span>
-      <select class="cysel" onchange="setCycle(+this.value)">${Array.from({length:28},(_,i)=>i+1).map(n=>`<option value="${n}" ${S===n?'selected':''}>매월 ${n}일</option>`).join('')}</select></div>
-  </div>`;
-}
+function applyImport(){const o=window._pendingImport;if(!o)return;window._pendingImport=null;
+  let n=0;Object.keys(o).forEach(k=>{if(k[0]==='_')return;store.set(k,o[k]);n++;});
+  SCHED=USERM.includes(curMonth)?buildUserMonth(curMonth):SCHEDS[curMonth];
+  buildCal();updateHdr();refreshMarks();render();
+  bkMsg(`복원 완료 — ${n}개 항목 ✓`);}
 /* leave */
 const lkey=d=>'leave-'+yr()+'-'+mm()+'-'+d;
 const getLeave=d=>store.get(lkey(d))||'';
@@ -644,7 +730,7 @@ function refreshMarks(){const _gt=document.getElementById('grandTotal');if(_gt)_
     if(has){if(!t){t=document.createElement('span');t.className='tx';t.textContent='🚕';c.appendChild(t);}}else if(t)t.remove();
     let f=c.querySelector('.fd');const hf=getFood(d).length>0;
     if(hf){if(!f){f=document.createElement('span');f.className='fd';f.textContent='🍽';c.appendChild(f);}}else if(f)f.remove();
-    const s=SCHED.find(x=>x.d===d);const lv=(s&&s.lv)||getLeave(d);c.classList.toggle('lvcell',!!lv);c.classList.toggle('sojcell',getSoj().includes(d));
+    const s=SCHED.find(x=>x.d===d);const lv=(s&&s.lv)||getLeave(d);c.classList.toggle('lvcell',!!lv);c.classList.toggle('sojcell',getSoj().includes(d));c.classList.toggle('aptcell',!!getAppt(d));
     let lb=c.querySelector('.lvm');
     if(lv){if(!lb){lb=document.createElement('span');c.appendChild(lb);}lb.className='lvm '+(lv==='연차'?'ann':'sick');lb.textContent=lv==='연차'?'연':'병';}else if(lb)lb.remove();});}
 
@@ -764,12 +850,13 @@ function masanPresence(s){const dia=DIA[s.dia];if(!dia)return[];const D=s.d,B=D*
   const deps=ev.filter(e=>e.k==='dep').map(e=>e.t), arrs=ev.filter(e=>e.k==='arr').map(e=>e.t);
   const sorted=ev.slice().sort((a,b)=>a.t-b.t), waits=[];
   for(let i=0;i<sorted.length-1;i++) if(sorted[i].k==='arr'&&sorted[i+1].k==='dep'&&sorted[i+1].t-sorted[i].t>5) waits.push([sorted[i].t,sorted[i+1].t]);
-  if(s.type==='night'){const fd=deps.length?Math.min(...deps):toMin(dia.cm)+45;out.push({from:B+inTime,to:B+fd,kind:'출근'});
+  const inEff=Math.max(inTime,toMin(dia.cm)-30); // 사무소엔 보통 출무 직전 도착
+  if(s.type==='night'){const fd=deps.length?Math.min(...deps):toMin(dia.cm)+45;out.push({from:B+inEff,to:B+fd,kind:'출근'});
     waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'휴식'}));}
   else if(s.type==='standby'){waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'퇴근'}));
     const la=arrs.length?Math.max(...arrs):toMin(dia.arr);out.push({from:B+la,to:B+toMin(dia.tg),kind:'퇴근'});}
   else{const fd=deps.length?Math.min(...deps):toMin(dia.cm)+30,la=arrs.length?Math.max(...arrs):toMin(dia.tg)-30;
-    out.push({from:B+inTime,to:B+fd,kind:'출근'});
+    out.push({from:B+inEff,to:B+fd,kind:'출근'});
     waits.forEach(w=>out.push({from:B+w[0],to:B+w[1],kind:'휴식'}));
     out.push({from:B+la,to:B+toMin(dia.tg),kind:'퇴근'});}
   return out;}
@@ -917,10 +1004,31 @@ function sojAvail(d){const s=SCHED.find(x=>x.d===d);if(!s)return{ok:true,why:''}
   const cm=toMin(cmS),tg=tgS?toMin(tgS):cm+600;const night=!!dia.ov||(tgS&&toMin(tgS)<cm);
   const ov=night?false:(cm<660&&tg>540);
   return ov?{ok:false,why:`${s.dia}(${cmS}~${tgS})와 겹침 → 참석 불가`}:{ok:true,why:`출무 ${cmS} 전 참석 가능`};}
+/* ── 🍚 밥약속 (동기 약속 등) ── */
+const apKey=d=>'appt-'+yr()+'-'+mm()+'-'+d;
+function getAppt(d){return store.get(apKey(d))||'';}
+function setApptTime(d,v){store.set(apKey(d),v||'');refreshMarks();render();}
+function toggleAppt(d){if(getAppt(d))store.set(apKey(d),'');else store.set(apKey(d),'18:30');refreshMarks();render();}
+function apptAvail(d,tm){const s=SCHED.find(x=>x.d===d);if(!s||!tm)return{ok:true,why:''};
+  const t=toMin(tm);
+  if(s.type==='off'||s.type==='pre')return{ok:true,why:'휴무라 여유 있음'};
+  if(s.type==='edu')return t>=540&&t<1080?{ok:false,why:'일근(9~18시)과 겹침'}:{ok:true,why:'일근 '+(t<540?'전':'후')+' 시간'};
+  if(s.type==='standby'){const p=SCHED.find(x=>x.d===d-1);const dia=p&&DIA[p.dia];const tgS=(p&&p.tg)||(dia&&dia.tg);
+    return (tgS&&t<toMin(tgS))?{ok:false,why:`비번 복귀(${tgS}) 전이라 불가`}:{ok:true,why:'복귀 후라 가능'};}
+  const D=DIA[s.dia]||{};const cmS=s.cm||D.cm,tgS=s.tg||D.tg;if(!cmS)return{ok:true,why:''};
+  const cm=toMin(cmS);const night=!!D.ov;
+  if(night)return t>=cm-60?{ok:false,why:`야간 출무(${cmS}) 준비와 겹침`}:{ok:true,why:'출무 전 가능 (박사업이라 저녁은 불가)'};
+  const tg=toMin(tgS);
+  return (t>=cm-60&&t<tg+30)?{ok:false,why:`근무(${cmS}~${tgS})와 겹침`}:{ok:true,why:t<cm?'출근 전':'퇴근 후'};}
+function apptBlock(d){const tm=getAppt(d);
+  let banner='';
+  if(tm){const a=apptAvail(d,tm);
+    banner=`<div class="aptb ${a.ok?'ok':'no'}">🍚 밥약속 <input type="time" value="${tm}" onchange="setApptTime(${d},this.value)"> · ${a.ok?'✅':'⚠️'} ${a.why}</div>`;}
+  return banner+`<div class="leave"><span class="lvlab">밥약속</span><button class="lv apt ${tm?'on':''}" onclick="toggleAppt(${d})">🍚 ${tm?'약속 해제':'약속 추가'}</button></div>`;}
 function sojBlock(d){const on=getSoj().includes(d);
   let banner='';
   if(on){const a=sojAvail(d);banner=`<div class="sojb ${a.ok?'ok':'no'}">📚 소집교육 09:00~11:00 · ${a.ok?'✅':'❌'} ${a.why}</div>`;}
-  return banner+`<div class="leave"><span class="lvlab">소집교육</span><button class="lv soj ${on?'on':''}" onclick="toggleSoj(${d})">📚 ${on?'교육일 해제':'교육일 추가'}</button></div>`;}
+  return banner+`<div class="leave"><span class="lvlab">소집교육</span><button class="lv soj ${on?'on':''}" onclick="toggleSoj(${d})">📚 ${on?'교육일 해제':'교육일 추가'}</button></div>`+apptBlock(d);}
 function leaveControl(d){const s=SCHED.find(x=>x.d===d);const c=(s&&s.lv)||getLeave(d);
   return sojBlock(d)+`<div class="leave"><span class="lvlab">연차·병가</span>
     <button class="lv ${c==='연차'?'on ann':''}" onclick="setLeave(${d},'연차')">🌴 연차</button>
@@ -1011,11 +1119,11 @@ const tlFmt=m=>{const d=Math.floor(m/1440);let x=((m%1440)+1440)%1440;return (d>
 const tlDur=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+'시간 ':'')+mm+'분';};
 function tlLegs(dia){const rd=(DIA[dia]&&DIA[dia].ref)||dia;const segs=RUN[rd];if(!segs)return null;
   return segs.map(l=>{const f=l.s[0],last=l.s[l.s.length-1];return {t:l.t,board:f.st,dep:(f.d||f.a),alight:last.st,arr:(last.a||last.d)};});}
-function buildTL(dia){
+function buildTL(dia,dl){
   const D=DIA[dia];const legsRaw=tlLegs(dia);if(!D||!legsRaw||!T_DIAS[(D&&D.ref)||dia])return null;
   const ov=!!D.ov;const ev=[];let last=toMin(D.cm);let dayBase=0;
   const abs=clock=>{let c=dayBase*1440+clock;while(c<last-1){dayBase++;c+=1440;}return c;};
-  const add=(t,tag,place,note)=>{ev.push({k:'e',t,tag,place,note});last=Math.max(last,t);};
+  const add=(t,tag,place,note,opts)=>{ev.push(Object.assign({k:'e',t,tag,place,note},opts||{}));last=Math.max(last,t);};
   const blk=(tag,text)=>ev.push({k:'b',tag,text});
   add(toMin(D.cm),'출무','마산 사업소','초기 출무');
   const L=legsRaw.map(lg=>{const hwan=/^H/.test(lg.t);const mode=hwan?'입환':((lg.board===T_ORIG[lg.t])?'시발':'교대');return {...lg,hwan,mode,off:hwan?10:(mode==='시발'?25:10),_isTerm:(lg.alight===T_TERM[lg.t])&&!hwan};});
@@ -1027,7 +1135,7 @@ function buildTL(dia){
       const gap=dep-prevArr;const crossed=Math.floor(dep/1440)>Math.floor(prevArr/1440);
       const sochk=prev._isTerm?prevArr+15:prevArr;const platf=dep-lg.off;
       if(crossed&&ov){
-        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분');
+        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분',prev._late?{late:prev._late,orig:sochk-prev._late}:null);
         let restStart=sochk;
         if(walk>0){const a=sochk+walk;add(a,'숙소도착',X,`도보 ${walk}분`);restStart=a;}
         blk('외박',`🛏️ 외박(수면)·${X}·${tlDur((dep-115)-restStart)}`);
@@ -1043,7 +1151,7 @@ function buildTL(dia){
         blk('회차',`🔄 빠른 회차·${X}·체류 ${tlDur(gap)}·종착순회7분+시발점검${qoff}분`);
         add(dep-qoff,'승강홈',X,`${lg.mode==='시발'?'시발점검':'교대'}·${lg.t}·열차 ${qoff}분 전(단축)`);
       } else {
-        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분');
+        if(prev._isTerm)add(sochk,'종착순회',prev.alight,'도착 +15분',prev._late?{late:prev._late,orig:sochk-prev._late}:null);
         const pureRest=platf-sochk;
         const useLodge=walk>0?true:((X==='진주'||X==='동대구')?pureRest>=55:false);
         let restStart=sochk,restEnd=platf;
@@ -1065,14 +1173,18 @@ function buildTL(dia){
     } else {
       add(lg.hwan?abs(360):dep-lg.off,'승강홈',lg.board,pN(lg));
     }
-    add(dep,'출발',`${lg.board} → ${lg.alight}`,lg.hwan?`${lg.t} 회송·6:05경(정시 ${T_HW[lg.t].sd})`:`${lg.t} 운행`);
-    const arr=abs(toMin((lg.hwan&&T_HW[lg.t])?T_HW[lg.t].arr:lg.arr));lg._arr=arr;
+    const lateHere=dl&&dl.min>0&&dl.i===i;
+    add(dep,'출발',`${lg.board} → ${lg.alight}`,(lg.hwan?`${lg.t} 회송·6:05경(정시 ${T_HW[lg.t].sd})`:`${lg.t} 운행`)+(lateHere?` · 🚨 지연 +${dl.min}분`:''));
+    let arr=abs(toMin((lg.hwan&&T_HW[lg.t])?T_HW[lg.t].arr:lg.arr));
+    const arrOrig=arr; if(lateHere)arr+=dl.min;
+    lg._arr=arr; lg._late=lateHere?dl.min:0;
     const an=lg.hwan?`${lg.t}·회송(종착순회 없음)·6:30경(정시 ${T_HW[lg.t].sa})`:(lg._isTerm?`${lg.t}·종착역`:`${lg.t}·교대 넘김`);
-    add(arr,'종착',`${lg.alight} 도착`,an);
+    add(arr,'종착',`${lg.alight} 도착`,an,lateHere?{late:dl.min,orig:arrOrig}:null);
   }
   const lastLeg=L[L.length-1];
-  if(lastLeg._isTerm)add(lastLeg._arr+15,'종착순회',lastLeg.alight,'도착 +15분(종착역)');
-  add(abs(toMin(D.tg)),'종료','마산 사업소','근무 종료');
+  if(lastLeg._isTerm)add(lastLeg._arr+15,'종착순회',lastLeg.alight,'도착 +15분(종착역)',lastLeg._late?{late:lastLeg._late,orig:lastLeg._arr-lastLeg._late+15}:null);
+  const endBase=abs(toMin(D.tg)),endLate=lastLeg._late||0;
+  add(endBase+endLate,'종료','마산 사업소','근무 종료',endLate?{late:endLate,orig:endBase}:null);
   return ev;
 }
 function tlSplit(ev){let idx=ev.length;for(let i=0;i<ev.length;i++){if(ev[i].k==='e'&&ev[i].t>=1440){idx=i;break;}}return {day0:ev.slice(0,idx),day1:ev.slice(idx)};}
@@ -1084,8 +1196,8 @@ function tlRows(evs){return evs.map(e=>{
   return `<div class="tlrow ${TL_C[e.tag]||''}${hl}"><span class="tltm">${tlFmt(e.t)}</span><span class="tlbd"><b class="tltg">${e.tag}</b><span class="tlpl">${e.place}</span>${e.note?`<span class="tlnt">${e.note}</span>`:''}</span></div>`;
 }).join('');}
 /* 카드용: 핵심 시각 칩 + 상세 타임라인 fold */
-const TL_RGB={run:'#3f5180',rest:'#5a8763',chk:'#c2542f',sleep:'#6f5e94'};
-const TL_EMO={run:'🚆',rest:'☕',chk:'📋',sleep:'🛏️'};
+const TL_RGB={run:'#3f5180',rest:'#5a8763',chk:'#c2542f',sleep:'#6f5e94',move:'#c9a227'};
+const TL_EMO={run:'🚆',rest:'☕',chk:'📋',sleep:'🛏️',move:'🚶'};
 const tlDur2=m=>{const h=Math.floor(m/60),mm=m%60;return (h?h+'시간 ':'')+(mm?mm+'분':(h?'':'0분'));};
 function tlSegsFrom(ev){
   const out=[];
@@ -1099,7 +1211,8 @@ function tlSegsFrom(ev){
     if(mids.some(x=>x.tag==='외박')){type='sleep';label='외박(수면)';place=b.place;}
     else if(mids.some(x=>/휴게/.test(x.tag))){type='rest';label='휴게';place=b.place;}
     else if(a.tag==='출발'){type='run';label=(a.note||'').split(' ·')[0].replace(' 운행','');place=a.place;}
-    out.push([a.t,b.t,type,label,place]);
+    else if(/^(준비|집 출발|출근열차|퇴근|택시)/.test(a.tag)){type='move';}
+    out.push([a.t,b.t,type,label,place,(a.late||b.late)?1:0,a.dash?1:0]);
   }
   return out;
 }
@@ -1108,14 +1221,14 @@ function tlNowAdj(isStandby){const rn=new Date();return rn.getHours()*60+rn.getM
 function setTlView(v){store.set('tlview',v);render();}
 function tlBar(segs,nowAdj){
   const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
-  let h=segs.map(s=>`<div class="tbseg" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]}"></div>`).join('');
+  let h=segs.map(s=>`<div class="tbseg ${s[5]?'lateseg':''}" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]};${s[6]?'opacity:.45':''}"></div>`).join('');
   let nm='';if(nowAdj!=null&&nowAdj>=a&&nowAdj<=b)nm=`<div class="tbnow" style="left:${px(nowAdj)}%"></div>`;
   return `<div class="tbwrap"><div class="tbbar">${h}</div>${nm}<span class="tbt" style="left:0">${tlFmt(segs[0][0])}</span><span class="tbt" style="right:0">${tlFmt(segs[segs.length-1][1])}</span></div>`;
 }
 function tlStateHtml(segs,nowAdj,today){
   if(!today||!segs||!segs.length)return '';
   const c=segs.find(s=>nowAdj>=s[0]&&nowAdj<s[1]);
-  if(!c)return `<div class="tlstate"><span class="em">🏠</span><span class="bd2"><span class="k2">지금 (${tlFmt(nowAdj%1440)})</span><span class="v2">근무 시간 아님</span></span></div>`;
+  if(!c)return `<div class="tlstate"><span class="em">🏠</span><span class="bd2"><span class="k2">지금 (${tlFmt(nowAdj%1440)})</span><span class="v2">근무 시간 아님</span>${tlNextWake()}</span></div>`;
   const pr=((nowAdj-c[0])/(c[1]-c[0])*100).toFixed(0),rm=c[1]-nowAdj;
   return `<div class="tlstate"><span class="em">${TL_EMO[c[2]]}</span><span class="bd2"><span class="k2">지금 (${tlFmt(nowAdj%1440)})</span><span class="v2">${c[3]} · ${c[4]}</span><span class="n2">다음 단계까지 ${tlDur2(rm)}</span><span class="mini2"><i style="width:${pr}%"></i></span></span></div>`;
 }
@@ -1132,18 +1245,19 @@ function tlViewTimeline(ev,nowAdj,today,segs){
     if(e.k==='b'){const c=e.tag==='외박'?'stay':(e.tag==='총휴게'?'sum':(e.tag==='회차'?'turn':'rest'));h+=`<div class="tlblk ${c}">${e.text}</div>`;return;}
     const end=endOf(e);
     const st=!today?'':(nowAdj>=end?'past':(nowAdj>=e.t?'cur':''));
-    const col=TL_RGB[e.tag==='출발'?'run':(/휴게|외박/.test(e.tag)?'rest':'chk')]||'#b8b3aa';
+    const col=TL_RGB[e.tag==='출발'?'run':(/휴게|외박/.test(e.tag)?'rest':(/^(준비|집 출발|출근열차|퇴근|택시|귀가)/.test(e.tag)?'move':'chk'))]||'#b8b3aa';
     const dd=end-e.t;
-    h+=`<div class="vti ${st}" style="--vc:${col}"><span class="vtr"><span class="vtd"></span><span class="vtl2"></span></span><span class="vtb"><span class="vtt">${tlFmt(e.t)}</span> <b>${e.tag}</b> <span class="vtp">${e.place}</span>${e.note?`<span class="vtn">${e.note}</span>`:''}${st==='cur'?`<span class="vtnow">● 지금 ${tlFmt(nowAdj%1440)} · ${tlDur2(end-nowAdj)} 남음</span>`:(dd>1&&dd<1440?`<span class="vtdur">${tlDur2(dd)}</span>`:'')}</span></div>`;
+    const tmH=e.late?`<span class="strike2">${tlFmt(e.orig)}</span> <span class="late2">${tlFmt(e.t)} (+${e.late})</span>`:`<span class="vtt">${tlFmt(e.t)}</span>`;
+    h+=`<div class="vti ${st} ${e.dash?'dash':''}" style="--vc:${col}"><span class="vtr"><span class="vtd"></span><span class="vtl2"></span></span><span class="vtb">${tmH} <b>${e.tag}</b> <span class="vtp">${e.place}</span>${e.note?`<span class="vtn">${e.note}</span>`:''}${st==='cur'?`<span class="vtnow">● 지금 ${tlFmt(nowAdj%1440)} · ${tlDur2(end-nowAdj)} 남음</span>`:(dd>1&&dd<1440?`<span class="vtdur">${tlDur2(dd)}</span>`:'')}</span></div>`;
   });
   return top+`<div class="vtl">${h}</div>`;
 }
 function tlViewGantt(segs,nowAdj,today){
   const a=segs[0][0],b=segs[segs.length-1][1];const px=m=>((m-a)/(b-a)*100);
-  const lanes=[['점검',['chk']],['운행',['run']],['휴게',['rest','sleep']]];
+  const lanes=[['이동',['move']],['점검',['chk']],['운행',['run']],['휴게',['rest','sleep']]];
   let laneH='';
   lanes.forEach(([nm,types])=>{
-    let sh='';segs.filter(s=>types.includes(s[2])).forEach(s=>{sh+=`<div class="gseg" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]}"></div>`;});
+    let sh='';segs.filter(s=>types.includes(s[2])).forEach(s=>{sh+=`<div class="gseg ${s[5]?'lateseg':''}" style="left:${px(s[0])}%;width:${px(s[1])-px(s[0])}%;background:${TL_RGB[s[2]]};${s[6]?'opacity:.45':''}"></div>`;});
     laneH+=`<div class="glane"><span class="gl">${nm}</span><span class="gb">${sh}</span></div>`;});
   let ticks='';for(let m=Math.ceil(a/120)*120;m<=b;m+=120)ticks+=`<span class="gtick" style="left:${px(m)}%">${tlFmt(m)}</span>`;
   let nm2='';if(today&&nowAdj>=a&&nowAdj<=b)nm2=`<div class="gnow" style="left:calc(34px + (100% - 34px)*${px(nowAdj)/100})"></div>`;
@@ -1162,6 +1276,51 @@ function tlChips(s){
     pick('재출무').forEach(a=>chips.push({k:'재출무',v:tlFmt(a.t)}));}
   return chips.length?`<div class="tlchip">${chips.map(c=>`<span class="c"><span class="ck">${c.k}</span><span class="cvl">${c.v}</span></span>`).join('')}</div>`:'';
 }
+/* ── 지연·퇴근선택 저장 + 출퇴근 확장 ── */
+let tlDlyOpen=false;
+const delKey=s=>{const d=(s.type==='standby'&&s.d>1)?s.d-1:s.d;return 'delay-'+yr()+'-'+mm()+'-'+d;};
+const gpKey=s=>'gopick-'+yr()+'-'+mm()+'-'+s.d;
+function delGet(s){try{const v=store.get(delKey(s));if(v)return JSON.parse(v);}catch(e){}return null;}
+function delSet(s,dl){store.set(delKey(s),(dl&&dl.min>0)?JSON.stringify(dl):'');}
+function toggleTlDly(){tlDlyOpen=!tlDlyOpen;render();}
+function tlSetDelayLeg(i){const s=SCHED.find(x=>x.d===curDay);const cur=delGet(s)||{i:i,min:0};cur.i=i;delSet(s,{i:cur.i,min:cur.min||5});render();}
+function tlBumpDelay(v){const s=SCHED.find(x=>x.d===curDay);const legs=tlLegs(s.dia)||[];
+  const cur=delGet(s)||{i:legs.length-1,min:0};
+  cur.min=Math.max(0,Math.min(180,(cur.min||0)+v));delSet(s,cur);render();}
+function tlPickGo(dep){const s=SCHED.find(x=>x.d===curDay);const cur=store.get(gpKey(s));
+  store.set(gpKey(s),cur===dep?'':dep);render();}
+function tlCommuteEv(s,D){
+  const cm=(s&&s.cm)||D.cm;if(!cm)return[];
+  const g=computeGo(cm,s.dow);
+  if(!g)return[{k:'e',t:toMin(cm)-110,tag:'준비 시작',place:'집',note:'출무 1시간 50분 전'},
+    {k:'e',t:toMin(cm)-55,tag:'집 출발',place:'자차/택시',note:'이 시간대 창원중앙→마산 열차 없음'}];
+  const dep=toMin(g[0]);
+  return[{k:'e',t:dep-75,tag:'준비 시작',place:'집',note:'열차 1시간 15분 전'},
+    {k:'e',t:dep-15,tag:'집 출발',place:'창원중앙역까지 ~15분',note:null},
+    {k:'e',t:dep,tag:'출근열차',place:'창원중앙 → 마산',note:`${gf(g[2])}${g[3]?' '+g[3]:''} · ${g[1]} 마산 도착`}];}
+function tlBackInfo(s,endAbs){
+  const endM=((endAbs%1440)+1440)%1440;
+  const cands=backList(s.dow).filter(b=>toMin(b[0])>=endM).slice(0,4)
+    .map(b=>({dep:b[0],arr:b[1],g:b[2],no:b[3]}));
+  const sel=store.get(gpKey(s))||'';
+  let pick=cands.find(c=>c.dep===sel)||null;
+  const confirmed=!!pick;
+  if(!pick)pick=cands[0]||null;
+  if(!pick)return {taxi:true,homeAbs:endAbs+30,cands:[],pick:null,confirmed:false};
+  const dayBase=Math.floor(endAbs/1440)*1440;
+  return {taxi:false,cands,pick,confirmed,depAbs:dayBase+toMin(pick.dep),arrAbs:dayBase+toMin(pick.arr),homeAbs:dayBase+toMin(pick.arr)+16};}
+function tlNextWake(){
+  const rn=new Date();if(yr()!==rn.getFullYear()||dispM(curMonth)!==rn.getMonth()+1)return '';
+  const nowM=rn.getHours()*60+rn.getMinutes();
+  for(let d=rn.getDate();d<=SCHED.length;d++){
+    const x=SCHED.find(q=>q.d===d);if(!x||(x.type!=='day'&&x.type!=='night'))continue;
+    const D=DIA[x.dia];if(!D)continue;
+    const cm=(x.cm)||D.cm;if(!cm)continue;
+    const g=computeGo(cm,x.dow);
+    const prep=g?toMin(g[0])-75:toMin(cm)-110;
+    if(d===rn.getDate()&&nowM>=prep)continue;
+    return `<span class="n2">⏰ 다음 근무 ${dispM(curMonth)}/${d} · 준비 시작 ${toHH(prep)}</span>`;}
+  return '<span class="n2">이번 달 남은 근무 없음 🌿</span>';}
 function tlSection(s){
   const dia=s.dia; if(!dia||!buildTL(dia))return '';
   const ev=buildTL(dia); const sp=tlSplit(ev);
@@ -1170,15 +1329,51 @@ function tlSection(s){
   if(!mine.length) return '';
   // 뷰 선택
   const v=store.get('tlview')||'card';
-  const segs=tlSegsFrom(mine);
+  // 지연 반영
+  const dl=delGet(s);
+  const evD=(dl&&dl.min>0)?buildTL(dia,dl):ev;
+  const spD=(dl&&dl.min>0)?tlSplit(evD):sp;
+  let mineX=(isStb?spD.day1:spD.day0).slice();
+  const legsAll=tlLegs(dia)||[];
+  // 출근 (근무일 뷰)
+  if(!isStb)mineX=tlCommuteEv(s,DIA[dia]).concat(mineX);
+  // 퇴근 (종료가 이 뷰에 있을 때)
+  const endEv=mineX.filter(e=>e.k==='e'&&e.tag==='종료').pop();
+  let back=null;
+  if(endEv){back=tlBackInfo(s,endEv.t);
+    if(back.taxi){mineX.push({k:'e',t:endEv.t,tag:'택시 퇴근',place:'마산 → 집 · 30분',note:'이 시간대 퇴근 열차 없음'},
+      {k:'e',t:back.homeAbs,tag:'귀가',place:'집',note:null});}
+    else{mineX.push({k:'e',t:back.depAbs,tag:back.confirmed?'퇴근':'퇴근 (예상)',place:`마산 → 창원중앙 · ${gf(back.pick.g)}${back.pick.no?' '+back.pick.no:''}`,note:`${back.pick.arr} 창원중앙 도착 → 집까지 16분`,dash:!back.confirmed},
+      {k:'e',t:back.homeAbs,tag:'귀가',place:'집',note:'창원중앙 도착 +16분',dash:!back.confirmed});}}
+  const segs=tlSegsFrom(mineX);
   const today=tlIsToday();
   const nowAdj=tlNowAdj(isStb);
+  // 지연 경고
+  let warn='';
+  if(dl&&dl.min>0&&dl.i<legsAll.length-1){
+    const cur=legsAll[dl.i],nxt=legsAll[dl.i+1];
+    let arrM=toMin(cur.arr)+dl.min;let depN=toMin(nxt.dep);if(depN<toMin(cur.arr))depN+=1440;
+    if(arrM+15>depN-25)warn=`<div class="tlwarn">⚠️ 지연으로 ${nxt.t} 승강홈까지 여유가 없어 — 빠른회차/휴게 축소 주의</div>`;}
+  // 지연 칩+패널
+  const dmin=(dl&&dl.min)||0;
+  const chip=`<button class="tddchip ${dmin?'late':''}" onclick="toggleTlDly()">🚨${dmin?` +${dmin}분`:(tlDlyOpen?' 닫기':'')}</button>`;
+  let panel='';
+  if(tlDlyOpen){
+    const di=(dl&&dl.i!=null)?dl.i:legsAll.length-1;
+    panel=`<div class="tddly"><div class="tdh"><span>🚨 어느 열차가 지연됐어?</span><span onclick="toggleTlDly()" style="cursor:pointer;color:var(--faint)">✕ 닫기</span></div>
+      <div class="tdlegs">${legsAll.map((l,i)=>`<button class="${i===di?'on':''}" onclick="tlSetDelayLeg(${i})">${l.t}</button>`).join('')}</div>
+      <div class="tdrow"><button onclick="tlBumpDelay(-5)">−</button><span class="tdv ${dmin?'':'zero'}">+${dmin}분</span><button onclick="tlBumpDelay(5)">＋</button></div></div>`;}
+  // 퇴근 선택 UI
+  let goHtml='';
+  if(back&&!back.taxi&&back.cands.length){
+    goHtml=`<div class="tlgo"><div class="tgl">🚉 퇴근 열차 — ${back.confirmed?'✅ 확정':'미정 · 가장 빠른 편 예상'}</div><div class="tgo">${back.cands.map(c=>`<button class="${back.confirmed&&back.pick.dep===c.dep?'on':''}" onclick="tlPickGo('${c.dep}')">${c.dep} ${gf(c.g)}${c.no?' '+c.no:''}</button>`).join('')}</div></div>`;}
+  else if(back&&back.taxi){goHtml=`<div class="tlgo"><div class="tgl">🚕 퇴근 열차 없음 → 택시 30분 · 귀가 ${tlFmt(back.homeAbs).replace('익일 ','')}${back.homeAbs>=1440&&!isStb?' (익일)':''}</div></div>`;}
   let body='';
-  if(v==='tline')body=tlViewTimeline(mine,nowAdj,today,segs);
-  else if(v==='gantt')body=segs.length?tlViewGantt(segs,nowAdj,today):'';
+  if(v==='tline')body=tlViewTimeline(mineX,nowAdj,today,segs)+goHtml;
+  else if(v==='gantt')body=(segs.length?tlViewGantt(segs,nowAdj,today):'')+goHtml;
   else body=segs.length?tlViewCard(segs,nowAdj,today):'';
   const sel=`<div class="tlsel">${[['card','📍 현재'],['tline','📋 타임라인'],['gantt','📊 간트']].map(([k,l])=>`<button class="${v===k?'on':''}" onclick="setTlView('${k}')">${l}</button>`).join('')}</div>`;
-  return (`<div class="tlsec"><div class="tlhead">🕘 휴게·출무${isStb?' (비번날 아침)':''}</div>${sel}${body}</div>`).replace(/익일 /g,'');
+  return (`<div class="tlsec"><div class="tlhead">🕘 휴게·출무${isStb?' (비번날 아침)':''}<span class="tdchipwrap">${chip}</span></div>${panel}${warn}${sel}${body}`).replace(/익일 /g,'')+`</div>`;
 }
 
 buildCal();
