@@ -220,9 +220,9 @@
   .r.ed .esel{border:1px solid var(--line);border-radius:7px;background:#fff;font-size:11px;font-weight:600;padding:3px 4px;font-family:inherit;color:var(--ink)}
   .r.ed .eno{width:52px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:11px;font-family:var(--mono);padding:3px 5px;text-align:center;color:var(--ink)}
   .r.ed .esel:focus,.r.ed .eno:focus{outline:none;border-color:var(--accent)}
-  .backup{max-width:440px;margin:14px auto 0;display:flex;align-items:center;gap:8px;padding:0 4px}
-  .backup .bklab{font-size:12.5px;font-weight:700;color:var(--muted)}
-  .backup .bkbtn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .backup{max-width:440px;margin:14px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 4px}
+  .backup .bklab{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:-2px}
+  .backup .bkbtn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;text-align:center}
   .backup .bkbtn:active{background:#f3ece6}
   .backup #impf{display:none}
   .mnav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:2px}
@@ -424,9 +424,24 @@
   <button class="bkbtn" onclick="exportData()">📤 내보내기</button>
   <button class="bkbtn" onclick="document.getElementById('impf').click()">📥 불러오기</button>
   <button class="bkbtn" onclick="icsExport()">📆 캘린더</button>
+  <button class="bkbtn" onclick="icsSubscribe()">📡 구독</button>
   <input id="impf" type="file" accept="application/json,.json" onchange="importData(this)">
 </div>
-<footer>퇴근 기차는 <b>마산 도착 +10분</b>부터 3개 표시 · 시간표는 <b>코레일 공식(요일별)</b> 기준, SRT 제외 · 열차 종류·번호는 시간표 <b>✏️편집</b>으로 수정 · 량수=네 엑셀, 조성=행로표 · 운용팀장 주간순번 7/1 C→7/2 B→7/3 A→7/4 D (4일주기) · 기록은 이 기기에만 저장(정기적으로 <b>내보내기</b> 권장).</footer></footer>
+<footer>퇴근 기차는 <b>마산 도착 +10분</b>부터 3개 표시 · 시간표는 <b>코레일 공식(요일별)</b> 기준, SRT 제외 · 열차 종류·번호는 시간표 <b>✏️편집</b>으로 수정 · 량수=네 엑셀, 조성=행로표 · 운용팀장 주간순번 7/1 C→7/2 B→7/3 A→7/4 D (4일주기) · 기록은 이 기기에만 저장(정기적으로 <b>내보내기</b> 권장).</footer>
+<div id="calmodal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px">
+ <div style="background:#fff;border-radius:18px;max-width:400px;width:100%;max-height:82vh;overflow:auto;padding:18px">
+  <div style="font-size:15px;font-weight:800;margin-bottom:10px">📡 캘린더 구독 설정</div>
+  <div style="font-size:12px;color:#8c8881;line-height:1.7;margin-bottom:12px">
+   아래 내용을 복사해서 깃허브의 <b>cal.ics</b> 파일로 올리면,<br>그 주소를 아이폰 캘린더가 구독해 자동으로 동기화돼요.<br>
+   <b>순서:</b> ① 전체 복사 → ② 깃허브에 <b>cal.ics</b>로 저장 → ③ 아이폰 설정에서 구독 (자세한 방법은 Claude가 안내)
+  </div>
+  <textarea id="calics" readonly style="width:100%;height:120px;border:1px solid #ecebe6;border-radius:10px;padding:9px;font-family:ui-monospace,monospace;font-size:10px"></textarea>
+  <div style="display:flex;gap:8px;margin-top:12px">
+   <button id="calcopy" onclick="copyIcs()" style="flex:1;padding:11px;border:0;border-radius:11px;background:#1d1d1f;color:#fff;font-weight:800;font-family:inherit;font-size:13px">📋 전체 복사</button>
+   <button onclick="closeCal()" style="padding:11px 16px;border:1px solid #ecebe6;border-radius:11px;background:#fff;color:#8c8881;font-weight:700;font-family:inherit;font-size:13px">닫기</button>
+  </div>
+ </div>
+</div></footer>
 </div><div id="v-dia" style="display:none"><iframe id="diaframe" title="다이아"></iframe></div><div id="v-ann" style="display:none"><iframe id="annframe" title="연차추천"></iframe></div><script type="text/html" id="dia-src"><!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>다이아별 휴게·출무 정리 — 배채은</title><style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#26241f;--faint:#9a938a;--line:#ece7df;--warm:#c96b3f;--blue:#3f6ec9;--grn:#3f8a5a;--pur:#7a5fb0;--amber:#c9902f;--teal:#2f9e8f}
@@ -708,6 +723,28 @@ function icsExport(){
   if(!cnt){bkMsg('이 달엔 내보낼 근무 일정이 없어',false);return;}
   const blob=new Blob([txt],{type:'text/calendar'});
   shareFile(blob,`근무_${yr()}-${icsPad(dispM(curMonth))}.ics`,'text/calendar');}
+/* ── 📡 캘린더 구독용: 전체 달 .ics 텍스트 복사 + 안내 ── */
+function icsAllMonths(){
+  const cur=curMonth;let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//chaeun-sched//KR','CALSCALE:GREGORIAN',
+    'X-WR-CALNAME:근무 스케줄','X-WR-TIMEZONE:Asia/Seoul'];
+  MSEQ.forEach(m=>{if(m===11||m===12)return; // 2025 구다이아 제외
+    curMonth=m;SCHED=USERM.includes(m)?buildUserMonth(m):SCHEDS[m];
+    const {txt}=icsBuild();
+    const body=txt.split('\r\n').filter(l=>l&&!/^(BEGIN:VCAL|VERSION|PRODID|CALSCALE|END:VCAL)/.test(l));
+    out=out.concat(body);});
+  out.push('END:VCALENDAR');
+  curMonth=cur;SCHED=USERM.includes(cur)?buildUserMonth(cur):SCHEDS[cur];
+  return out.join('\r\n');}
+function icsSubscribe(){
+  const txt=icsAllMonths();
+  const modal=document.getElementById('calmodal');
+  document.getElementById('calics').value=txt;
+  modal.style.display='flex';}
+function closeCal(){document.getElementById('calmodal').style.display='none';}
+async function copyIcs(){const ta=document.getElementById('calics');
+  try{await navigator.clipboard.writeText(ta.value);document.getElementById('calcopy').textContent='✓ 복사됨!';
+    setTimeout(()=>{document.getElementById('calcopy').textContent='📋 전체 복사';},1500);}
+  catch(e){ta.focus();ta.select();document.getElementById('calcopy').textContent='길게 눌러 복사';}}
 function exportData(){const data={_app:'chaeun-schedule',_ver:2,_date:new Date().toISOString()};
   // 앱의 모든 저장 키 백업 (택시·식비·연차·직접입력월·소집교육·밥약속·지연·퇴근선택·시간표편집 등)
   const PRE=['taxi-','food-','leave-','usched-','soj-','appt-','delay-','gopick-'];
