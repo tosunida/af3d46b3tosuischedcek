@@ -715,11 +715,6 @@ function icsBuild(){
     const desc=lines.map(e=>e.k==='e'?fmtE(e):fmtB(e));
     if(dl&&dl.min>0)desc.unshift(`🚨 지연 +${dl.min}분 반영됨`);
     push(s.d,st,en,`🚆 ${nm}다이아 (준비 ${tlFmt(st)} · 승강홈 ${plat?tlFmt(plat.t):'-'})`,desc);
-    // 잠금화면 위젯용 마커 (짧은 이벤트 — 위젯은 "다음 시작"만 보여줘서)
-    push(s.d,st,st+15,`⏰ 준비 시작 · ${nm}다이아`,null);
-    if(plat)push(s.d,plat.t,plat.t+15,`🚉 승강홈 · ${nm}다이아`,null);
-    const goEv=lines.filter(e=>e.k==='e'&&/^(퇴근|택시 퇴근)/.test(e.tag)).shift();
-    if(goEv)push(s.d,goEv.t,goEv.t+15,`${goEv.tag.startsWith('택시')?'🚕':'🚆'} ${goEv.tag}${goEv.place?' · '+goEv.place:''}`,null);
   });
   out.push('END:VCALENDAR');
   return {txt:out.filter(Boolean).join('\r\n'),cnt};}
